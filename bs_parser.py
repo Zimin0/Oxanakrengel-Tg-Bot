@@ -30,7 +30,7 @@ class WebPageParser:
             return None
 
     @time_decorator
-    def parse_html(self, html_content: str) -> Dict[str, Any]:
+    def parse_html(self, html_content: str, url:str) -> Dict[str, Any]:
         """Парсинг HTML и извлечение данных."""
         soup: BeautifulSoup = BeautifulSoup(html_content, 'html.parser')
         title = soup.find('h2', class_='flex-box').text.strip()
@@ -41,7 +41,8 @@ class WebPageParser:
             "price": soup.find('div', class_='cart-info__price').text.strip(),
             "sizes": [label.text.strip() for label in soup.find_all('label', class_='cart-info__btn-size radio')],
             "description": soup.find('div', class_='cart-info__discription').find('p').text.strip() if soup.find('div', class_='cart-info__discription').find('p') else "Описание отсутствует",
-            "image_urls": [img['src'] for img in soup.find_all('img') if 'src' in img.attrs and '1360x2040.jpg' in img['src']]
+            "image_urls": [img['src'] for img in soup.find_all('img') if 'src' in img.attrs and '1360x2040.jpg' in img['src']],
+            "url": url
         }
         return product
 
@@ -55,7 +56,7 @@ class WebPageParser:
     def run(self, url: str, save_to_file: bool = False) -> str:
         html_content = self.get_html(url)
         if html_content:
-            product_info = self.parse_html(html_content)
+            product_info = self.parse_html(html_content, url)
             if save_to_file:
                 self.save_to_json(product_info)
             return json.dumps(product_info, ensure_ascii=False, indent=4)
@@ -63,4 +64,4 @@ class WebPageParser:
 if __name__ == "__main__":
     parser = WebPageParser(debug=True)
     json_data = parser.run("https://oxanakrengel.com/tvidovyi-kostyum-goluboi", save_to_file=True)
-    print(json_data)
+    # print(json_data)
