@@ -20,9 +20,9 @@ class WebPageParser:
         return wrapper
 
     @time_decorator
-    def get_html(self, url: str) -> str:
+    def __get_html(self, url: str) -> str:
         """Получение HTML-контента по URL."""
-        response: requests.Response = requests.get(url)
+        response = requests.get(url)
         if response.status_code == 200:
             return response.text
         else:
@@ -30,9 +30,9 @@ class WebPageParser:
             return None
 
     @time_decorator
-    def parse_html(self, html_content: str, url:str) -> Dict[str, Any]:
+    def __parse_html(self, html_content: str, url:str) -> Dict[str, Any]:
         """Парсинг HTML и извлечение данных."""
-        soup: BeautifulSoup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, 'html.parser')
         title = soup.find('h2', class_='flex-box').text.strip()
         unique_id = hashlib.md5(title.encode('utf-8')).hexdigest()
         product = {
@@ -46,7 +46,7 @@ class WebPageParser:
         }
         return product
 
-    def save_to_json(self, data) -> None:
+    def __save_to_json(self, data) -> None:
         """Сохранение данных о продукте в JSON файл с уникальным именем."""
         filename = f"product_info_{data['id']}.json"
         with open(filename, 'w', encoding='utf-8') as f:
@@ -54,14 +54,13 @@ class WebPageParser:
         if self.debug: print(f'Информация о продукте "{data["title"]}" сохранена в файл {filename}.')
 
     def run(self, url: str, save_to_file: bool = False) -> str:
-        html_content = self.get_html(url)
+        html_content = self.__get_html(url)
         if html_content:
-            product_info = self.parse_html(html_content, url)
+            product_info = self.__parse_html(html_content, url)
             if save_to_file:
-                self.save_to_json(product_info)
+                self.__save_to_json(product_info)
             return json.dumps(product_info, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
     parser = WebPageParser(debug=True)
     json_data = parser.run("https://oxanakrengel.com/tvidovyi-kostyum-goluboi", save_to_file=True)
-    # print(json_data)
