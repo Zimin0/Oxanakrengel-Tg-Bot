@@ -8,7 +8,8 @@ import json
 class WebPageParser:
     def __init__(self, debug: bool = False) -> None:
         self.debug = debug
-        
+    
+    @staticmethod
     def time_decorator(func: Callable) -> Callable:
         def wrapper(self, *args: Any, **kwargs: Any) -> Any:
             start_time = time.time() if self.debug else None
