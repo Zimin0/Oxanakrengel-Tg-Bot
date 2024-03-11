@@ -42,7 +42,7 @@ class WebPageParser:
             "price": soup.find('div', class_='cart-info__price').text.strip(),
             "sizes": [label.text.strip() for label in soup.find_all('label', class_='cart-info__btn-size radio')],
             "description": soup.find('div', class_='cart-info__discription').find('p').text.strip() if soup.find('div', class_='cart-info__discription').find('p') else "Описание отсутствует",
-            "image_urls": [img['src'] for img in soup.find_all('img') if 'src' in img.attrs and '1360x2040.jpg' in img['src']],
+            "image_urls": [img['src'] for img in soup.find_all('img') if 'src' in img.attrs and '1360x2040' in img['src']],
             "url": url
         }
         return product
@@ -64,4 +64,4 @@ class WebPageParser:
 
 if __name__ == "__main__":
     parser = WebPageParser(debug=True)
-    json_data = parser.run("https://oxanakrengel.com/tvidovyi-kostyum-goluboi", save_to_file=True)
+    json_data = parser.run("https://oxanakrengel.com/plate-futlyar-s-vyrezom-lodochkoi-i-manzhetami-krasnoe", save_to_file=True)
