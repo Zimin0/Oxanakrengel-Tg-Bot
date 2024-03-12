@@ -4,10 +4,13 @@ from typing import Callable, Any, Dict, Optional
 import time
 import hashlib
 import json
+import os
 
 class WebPageParser:
-    def __init__(self, debug: bool = False) -> None:
+    def __init__(self, debug: bool = False, folder: str = '') -> None:
+        """ folder - папка для сохранения файлов """
         self.debug = debug
+        self.folder = folder 
     
     @staticmethod
     def time_decorator(func: Callable) -> Callable:
@@ -47,21 +50,23 @@ class WebPageParser:
         }
         return product
 
-    def __save_to_json(self, data) -> None:
+    def __save_to_json(self, data) -> str:
         """Сохранение данных о продукте в JSON файл с уникальным именем."""
         filename = f"product_info_{data['id']}.json"
-        with open(filename, 'w', encoding='utf-8') as f:
+        filepath = os.path.join(self.folder, filename)
+        with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-        if self.debug: print(f'Информация о продукте "{data["title"]}" сохранена в файл {filename}.')
+        if self.debug: print(f'Информация о продукте "{data["title"]}" сохранена в файл {filepath}.')
+        return filepath
 
-    def run(self, url: str, save_to_file: bool = False) -> str:
+    def run(self, url: str, save_to_file: bool = False) -> tuple[str, str]:
         html_content = self.__get_html(url)
         if html_content:
             product_info = self.__parse_html(html_content, url)
             if save_to_file:
-                self.__save_to_json(product_info)
-            return json.dumps(product_info, ensure_ascii=False, indent=4)
+                filename = self.__save_to_json(product_info)
+            return filename, json.dumps(product_info, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    parser = WebPageParser(debug=True)
-    json_data = parser.run("https://oxanakrengel.com/plate-futlyar-s-vyrezom-lodochkoi-i-manzhetami-krasnoe", save_to_file=True)
+    parser = WebPageParser(debug=True, folder='products_json')
+    filename, json_data = parser.run("https://oxanakrengel.com/plate-futlyar-s-vyrezom-lodochkoi-i-manzhetami-krasnoe", save_to_file=True)
