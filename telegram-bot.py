@@ -10,6 +10,8 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 import json
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.context import FSMContext
 
 from create_links import get_bot_link_with_arg, get_product_link_in_shop
 from bs_parser import WebPageParser
@@ -20,6 +22,15 @@ TOKEN = os.getenv("BOT_TOKEN")
 
 dp = Dispatcher()
 parser = WebPageParser(debug=True, folder='products_json')
+
+
+class OrderClothes(StatesGroup):
+    show_clothes = State()
+    choose_size = State()
+    choose_payment_method = State()
+    get_personal_data = State()
+    send_request_to_support = State()
+
 
 def get_args_from_message(message: Message) -> str:
     """ Достает аргументы, переданные в ссылке в параметре ?start=... """
@@ -34,7 +45,6 @@ from aiogram import Bot, types
 
 async def send_product_info(message: Message, product_info: dict):
     # Форматирование и отправка текстового сообщения с информацией о товаре
-    print(1)
     message_text = (
         f"<b>{product_info['title']}</b>\n"
         f"Цена: <i>{product_info['price']}</i>\n"
@@ -54,9 +64,10 @@ async def send_product_info(message: Message, product_info: dict):
 
 
 @dp.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
+async def command_start_handler(message: Message, state: FSMContext) -> None:
     """ Этот обработчик получает сообщения с командой /start """
 
+    await state.set_state(OrderClothes.show_clothes)
     await message.answer(hbold("Ищу ваш товар в каталоге..."))
     # await message.answer_sticker(sticker="CAACAgIAAxkBAAEqKnll73MY6EKjiWdKkbwyWuIUapEGlgAC_hEAAo6E8Eup_sGzXXLhQDQE")
 

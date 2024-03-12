@@ -11,6 +11,7 @@ class WebPageParser:
         """ folder - папка для сохранения файлов """
         self.debug = debug
         self.folder = folder 
+        os.makedirs(self.folder, exist_ok=True)
     
     @staticmethod
     def time_decorator(func: Callable) -> Callable:
@@ -50,22 +51,34 @@ class WebPageParser:
         }
         return product
 
-    def __save_to_json(self, data) -> str:
-        """Сохранение данных о продукте в JSON файл с уникальным именем."""
-        filename = f"product_info_{data['id']}.json"
-        filepath = os.path.join(self.folder, filename)
+    def __save_to_json(self, data, filepath) -> None:
+        """Сохранение данных о продукте в JSON файл."""
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-        if self.debug: print(f'Информация о продукте "{data["title"]}" сохранена в файл {filepath}.')
-        return filepath
+        if self.debug: print(f'Информация о продукте сохранена в файл {filepath}.')
 
-    def run(self, url: str, save_to_file: bool = False) -> tuple[str, str]:
+    def run(self, url: str, save_to_file: bool = False) -> tuple[str, Optional[str]]:
+        # Создание уникального ID на основе URL для проверки существования файла
+        unique_id = hashlib.md5(url.encode('utf-8')).hexdigest()
+        filename = f"product_info_{unique_id}.json"
+        filepath = os.path.join(self.folder, filename)
+
+        # Проверка наличия файла с данными о товаре
+        if os.path.exists(filepath):
+            if self.debug: print(f'Информация о продукте загружается из файла {filepath}.')
+            with open(filepath, 'r', encoding='utf-8') as f:
+                product_info = json.load(f)
+                return filepath, json.dumps(product_info, ensure_ascii=False, indent=4)
+
+        # Если файла нет, производим парсинг и сохраняем результаты
         html_content = self.__get_html(url)
         if html_content:
             product_info = self.__parse_html(html_content, url)
             if save_to_file:
-                filename = self.__save_to_json(product_info)
-            return filename, json.dumps(product_info, ensure_ascii=False, indent=4)
+                self.__save_to_json(product_info, filepath)
+            return filepath, json.dumps(product_info, ensure_ascii=False, indent=4)
+
+        return filepath, None
 
 if __name__ == "__main__":
     parser = WebPageParser(debug=True, folder='products_json')

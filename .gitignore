@@ -2,3 +2,5 @@
 /pyenv
 *.json
 /trash
+/__pycache__
+/products_json
