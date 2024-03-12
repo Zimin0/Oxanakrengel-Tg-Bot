@@ -19,8 +19,10 @@ from bs_parser import WebPageParser
 load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
-
 dp = Dispatcher()
+
+router = Router()
+dp.include_router(router)
 parser = WebPageParser(debug=True, folder='products_json')
 
 
@@ -44,7 +46,7 @@ def get_args_from_message(message: Message) -> str:
 from aiogram import Bot, types
 
 async def send_product_info(message: Message, product_info: dict):
-    # Форматирование и отправка текстового сообщения с информацией о товаре
+    """ Форматирует и отправляет текстовое сообщение с информацией о товаре """
     message_text = (
         f"<b>{product_info['title']}</b>\n"
         f"Цена: <i>{product_info['price']}</i>\n"
@@ -52,41 +54,26 @@ async def send_product_info(message: Message, product_info: dict):
         f"<a href='{product_info['url']}'>Подробнее о товаре</a>\n\n"
         f"{product_info['description']}"
     )
-    # Создание группы фотографий товара
-    media = [types.InputMediaPhoto(media=url) for url in product_info['image_urls']]
-    # Отправка изображений как альбома, если есть изображения
-    if media:
+    media = [types.InputMediaPhoto(media=url) for url in product_info['image_urls']] # Создание группы фотографий товара
+    if media: # Отправка изображений как альбома, если есть изображения
         await message.answer_media_group(media)
-
     await message.answer(message_text, parse_mode='HTML')
     
 
-
-
-@dp.message(CommandStart())
+@router.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext) -> None:
     """ Этот обработчик получает сообщения с командой /start """
 
     await state.set_state(OrderClothes.show_clothes)
+    current_state = await state.get_state()
+    print(current_state)
     await message.answer(hbold("Ищу ваш товар в каталоге..."))
-    # await message.answer_sticker(sticker="CAACAgIAAxkBAAEqKnll73MY6EKjiWdKkbwyWuIUapEGlgAC_hEAAo6E8Eup_sGzXXLhQDQE")
 
     product_name = get_args_from_message(message)
     link_in_shop = get_product_link_in_shop(product_name)
     filename, product_json_str = parser.run(link_in_shop, save_to_file=True)  # Получаем JSON в виде строки
     product_json = json.loads(product_json_str)  # Преобразуем строку в словарь
     await send_product_info(message, product_json)
-
-@dp.message()
-async def echo_handler(message: types.Message) -> None:
-    """
-    Этот обработчик будет пересылать полученное сообщение обратно отправителю
-    По умолчанию обработчик сообщений будет обрабатывать все типы сообщений (текст, фото, стикеры и т.д.)
-    """
-    try:
-        await message.send_copy(chat_id=message.chat.id)
-    except TypeError:
-        await message.answer("Nice try!")
 
 
 async def main() -> None:
