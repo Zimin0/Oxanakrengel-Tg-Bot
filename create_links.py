@@ -13,4 +13,12 @@ def get_product_link_in_shop(product_name:str):
     """ Создает ссылку на товар в магазине oxanakrengel.com из названия товара. """
     return f"https://oxanakrengel.com/{product_name}"
 
-print(get_bot_link_with_arg(product_url='https://oxanakrengel.com/plate-futlyar-s-vyrezom-lodochkoi-i-manzhetami-krasnoe'))
+
+if __name__ == '__main__':
+    print(get_bot_link_with_arg(product_url='https://oxanakrengel.com/zhaket-na-molnii'))
+
+# https://t.me/OxanaKrengelShopBot?start=plate-futlyar-s-v-vyrezom
+# https://t.me/OxanaKrengelShopBot?start=barkhatnoe-plate-gode-na-korsete-chyornoe
+# https://t.me/OxanaKrengelShopBot?start=bryuchnyi-kostyum-iz-grafitovogo-shelka
+# https://t.me/OxanaKrengelShopBot?start=bryuchnyi-kostyum-troika-sinii
+# https://t.me/OxanaKrengelShopBot?start=zhaket-na-molnii
