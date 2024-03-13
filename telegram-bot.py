@@ -14,6 +14,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 
 from create_links import get_bot_link_with_arg, get_product_link_in_shop
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from bs_parser import WebPageParser
 
 load_dotenv()
@@ -54,11 +55,32 @@ async def send_product_info(message: Message, product_info: dict):
         f"<a href='{product_info['url']}'>Подробнее о товаре</a>\n\n"
         f"{product_info['description']}"
     )
-    media = [types.InputMediaPhoto(media=url) for url in product_info['image_urls']] # Создание группы фотографий товара
-    if media: # Отправка изображений как альбома, если есть изображения
+
+    # Создание кнопок для каждого размера
+    buttons = [[InlineKeyboardButton(text=size, callback_data=f"size_{size}")] for size in product_info['sizes']]
+    # Создание инлайн-клавиатуры с этими кнопками
+    size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    # Отправка медиа, если оно есть
+    media = [types.InputMediaPhoto(media=url) for url in product_info['image_urls']]
+    if media:
         await message.answer_media_group(media)
-    await message.answer(message_text, parse_mode='HTML')
-    
+    # Отправка текстового сообщения с инлайн-клавиатурой
+    await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard)
+
+
+@router.callback_query(lambda c: c.data and c.data.startswith('size_'))
+async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    """ Выбор размера одежды. """
+    selected_size = callback_query.data.replace('size_', '')
+    await state.update_data(selected_size=selected_size) #  # Сохранение выбранного размера в контекст состояния
+    await callback_query.message.answer(f"Вы выбрали размер: {callback_query.data.replace('size_', '')}")
+    await state.set_state(OrderClothes.choose_payment_method) # переход в следующее состояние
+    await callback_query.answer() # подтверждение обработки callback запроса
+
+    user_data = await state.get_data() # Извлечение данных из контекста состояния
+    selected_size = user_data.get('selected_size')
+    print(f"Сохраненный размер одежды: {selected_size}")
+
 
 @router.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext) -> None:
