@@ -89,11 +89,10 @@ def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
     return callback_query.data.startswith('payment_')
 
 ##################### Обработчики #####################
-
 @router.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext) -> None:
     """ Этот обработчик получает сообщения с командой /start """
-
+    await state.clear() 
     await state.set_state(OrderClothes.show_clothes)
     current_state = await state.get_state()
     print(current_state)
@@ -108,23 +107,18 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
 
 @router.callback_query(is_size_callback)
 async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    """ Обработчик выбора размера одежды. """
-    
-    current_state = await state.get_state()
-    if current_state != OrderClothes.choose_size.state:
+    user_data = await state.get_data()
+    if "selected_size" in user_data:
+        await callback_query.message.answer("Вы уже выбрали размер товара.")
+    else:
+        selected_size = callback_query.data.replace('size_', '')
+        await state.update_data(selected_size=selected_size)  # Сохранение выбранного размера
         await callback_query.message.answer(
-            text="Я вас не понял. Пожалуйста, выберите способ оплаты:",
+            text=f"{selected_size}-й размер, отлично! Теперь выберите <b>способ оплаты</b>:",
             reply_markup=get_payment_keyboard()
         )
-        return
-    selected_size = callback_query.data.replace('size_', '')
-    await state.update_data(selected_size=selected_size)  # Сохранение выбранного размера
-    await callback_query.message.answer(
-        text=f"{selected_size}й размер, отлично! \n Теперь выберите <b>способ оплаты</b>:",
-        reply_markup=get_payment_keyboard()
-    )
-    await state.set_state(OrderClothes.choose_payment_method)  # Переход к выбору способа оплаты
-    await callback_query.answer()  # Подтверждение обработки callback запроса
+        await state.set_state(OrderClothes.choose_payment_method)  # Переход к выбору способа оплаты
+    await callback_query.answer()
 
     user_data = await state.get_data() # Извлечение данных из контекста состояния
     selected_size = user_data.get('selected_size')
@@ -132,18 +126,15 @@ async def process_size_callback(callback_query: types.CallbackQuery, state: FSMC
 
 @router.callback_query(is_payment_callback)
 async def process_payment_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    """Обработчик для выбора способа оплаты."""
-    current_state = await state.get_state()
-    if current_state != OrderClothes.choose_payment_method.state:
-        await callback_query.message.answer(
-            "Пожалуйста, выберите способ оплаты:",
-            reply_markup=get_payment_keyboard()
-        )
-        return
-    payment_method = callback_query.data.split('_')[-1]  # Извлекаем метод оплаты из callback_data
-    await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
-    await callback_query.message.answer(f"Вы выбрали способ оплаты: {payment_method.capitalize()}")
-    await state.set_state(OrderClothes.get_personal_data)
+    user_data = await state.get_data()
+    if "payment_method" in user_data:
+        await callback_query.message.answer("Вы уже выбрали способ оплаты.")
+    else:
+        payment_method = callback_query.data.split('_')[-1]  # Извлекаем метод оплаты из callback_data
+        await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
+        await callback_query.message.answer(f"Способ оплаты <b>{payment_method.capitalize()}</b> выбран.")
+        await state.set_state(OrderClothes.get_personal_data)
+
     await callback_query.answer()
 
 async def main() -> None:
