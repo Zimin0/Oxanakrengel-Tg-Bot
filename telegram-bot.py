@@ -12,6 +12,7 @@ from aiogram.utils.markdown import hbold
 import json
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
+from aiogram import Bot, types
 
 from create_links import get_bot_link_with_arg, get_product_link_in_shop
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -43,8 +44,19 @@ def get_args_from_message(message: Message) -> str:
         args = parts[1]
     return args
 
+def is_size_callback(callback_query: types.CallbackQuery) -> bool:
+    """ Определяет, что пользователь нажал на кнопку размера. """
+    if callback_query.data:
+        return callback_query.data.startswith('size_')
+    return False
 
-from aiogram import Bot, types
+def get_payment_keyboard() -> InlineKeyboardMarkup:
+    """Возвращает инлайн-клавиатуру для выбора способа оплаты."""
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text='Карта РФ', callback_data='payment_card')],
+        [InlineKeyboardButton(text='Paypal', callback_data='payment_paypal')]
+    ])
+    return keyboard
 
 async def send_product_info(message: Message, product_info: dict):
     """ Форматирует и отправляет текстовое сообщение с информацией о товаре """
@@ -71,25 +83,12 @@ async def send_product_info(message: Message, product_info: dict):
     
     await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard) # Отправка текстового сообщения с инлайн-клавиатурой
 
-def is_size_callback(callback_query: types.CallbackQuery) -> bool:
-    """ Определяет, что пользователь нажал на кнопку размера. """
-    if callback_query.data:
-        return callback_query.data.startswith('size_')
-    return False
 
-@router.callback_query(is_size_callback)
-async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    """ Выбор размера одежды. """
-    selected_size = callback_query.data.replace('size_', '')
-    await state.update_data(selected_size=selected_size) #  # Сохранение выбранного размера в контекст состояния
-    await callback_query.message.answer(f"Вы выбрали размер: {callback_query.data.replace('size_', '')}")
-    await state.set_state(OrderClothes.choose_payment_method) # переход в следующее состояние
-    await callback_query.answer() # подтверждение обработки callback запроса
+def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
+    """Проверяет, является ли callback_query выбором способа оплаты."""
+    return callback_query.data.startswith('payment_')
 
-    user_data = await state.get_data() # Извлечение данных из контекста состояния
-    selected_size = user_data.get('selected_size')
-    print(f"Сохраненный размер одежды: {selected_size}")
-
+##################### Обработчики #####################
 
 @router.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext) -> None:
@@ -105,12 +104,51 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
     filename, product_json_str = parser.run(link_in_shop, save_to_file=True)  # Получаем JSON в виде строки
     product_json = json.loads(product_json_str)  # Преобразуем строку в словарь
     await send_product_info(message, product_json)
+    await state.set_state(OrderClothes.choose_size)
 
+@router.callback_query(is_size_callback)
+async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    """ Обработчик выбора размера одежды. """
+    
+    current_state = await state.get_state()
+    if current_state != OrderClothes.choose_size.state:
+        await callback_query.message.answer(
+            text="Я вас не понял. Пожалуйста, выберите способ оплаты:",
+            reply_markup=get_payment_keyboard()
+        )
+        return
+    selected_size = callback_query.data.replace('size_', '')
+    await state.update_data(selected_size=selected_size)  # Сохранение выбранного размера
+    await callback_query.message.answer(
+        text=f"{selected_size}й размер, отлично! \n Теперь выберите <b>способ оплаты</b>:",
+        reply_markup=get_payment_keyboard()
+    )
+    await state.set_state(OrderClothes.choose_payment_method)  # Переход к выбору способа оплаты
+    await callback_query.answer()  # Подтверждение обработки callback запроса
+
+    user_data = await state.get_data() # Извлечение данных из контекста состояния
+    selected_size = user_data.get('selected_size')
+    print(f"Сохраненный размер одежды: {selected_size}")
+
+@router.callback_query(is_payment_callback)
+async def process_payment_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    """Обработчик для выбора способа оплаты."""
+    current_state = await state.get_state()
+    if current_state != OrderClothes.choose_payment_method.state:
+        await callback_query.message.answer(
+            "Пожалуйста, выберите способ оплаты:",
+            reply_markup=get_payment_keyboard()
+        )
+        return
+    payment_method = callback_query.data.split('_')[-1]  # Извлекаем метод оплаты из callback_data
+    await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
+    await callback_query.message.answer(f"Вы выбрали способ оплаты: {payment_method.capitalize()}")
+    await state.set_state(OrderClothes.get_personal_data)
+    await callback_query.answer()
 
 async def main() -> None:
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
