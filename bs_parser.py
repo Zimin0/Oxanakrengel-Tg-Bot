@@ -7,10 +7,14 @@ import json
 import os
 
 class WebPageParser:
-    def __init__(self, debug: bool = False, folder: str = '') -> None:
-        """ folder - папка для сохранения файлов """
+    def __init__(self, debug: bool = False, folder: str = '', can_upload_from_file: bool = False) -> None:
+        """ 
+        folder - папка для сохранения файлов 
+        can_upload_from_file - можно ли подтягивать изменения из файла или нужно обязательно скачивать с сайта
+        """
         self.debug = debug
         self.folder = folder 
+        self.can_upload_from_file = can_upload_from_file
         os.makedirs(self.folder, exist_ok=True)
     
     @staticmethod
@@ -40,13 +44,14 @@ class WebPageParser:
         soup = BeautifulSoup(html_content, 'html.parser')
         title = soup.find('h2', class_='flex-box').text.strip()
         unique_id = hashlib.md5(title.encode('utf-8')).hexdigest()
+        image_urls_set = set(img['src'] for img in soup.find_all('img') if 'src' in img.attrs and '1360x2040' in img['src'])
         product = {
             "id": unique_id,
             "title": title,
             "price": soup.find('div', class_='cart-info__price').text.strip(),
             "sizes": [label.text.strip() for label in soup.find_all('label', class_='cart-info__btn-size radio')],
             "description": soup.find('div', class_='cart-info__discription').find('p').text.strip() if soup.find('div', class_='cart-info__discription').find('p') else "Описание отсутствует",
-            "image_urls": [img['src'] for img in soup.find_all('img') if 'src' in img.attrs and '1360x2040' in img['src']],
+            "image_urls": list(image_urls_set),
             "url": url
         }
         return product
@@ -64,7 +69,7 @@ class WebPageParser:
         filepath = os.path.join(self.folder, filename)
 
         # Проверка наличия файла с данными о товаре
-        if os.path.exists(filepath):
+        if os.path.exists(filepath) and self.can_upload_from_file:
             if self.debug: print(f'Информация о продукте загружается из файла {filepath}.')
             with open(filepath, 'r', encoding='utf-8') as f:
                 product_info = json.load(f)
@@ -81,5 +86,5 @@ class WebPageParser:
         return filepath, None
 
 if __name__ == "__main__":
-    parser = WebPageParser(debug=True, folder='products_json')
-    filename, json_data = parser.run("https://oxanakrengel.com/plate-futlyar-s-vyrezom-lodochkoi-i-manzhetami-krasnoe", save_to_file=True)
+    parser = WebPageParser(debug=True, folder='products_json', can_upload_from_file=True)
+    filename, json_data = parser.run("https://oxanakrengel.com/plate-futlyar-s-vyrezom-lodochkoi-i-manzhetami-krasnoe", save_to_file=False)
