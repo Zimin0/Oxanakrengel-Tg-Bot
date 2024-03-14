@@ -71,8 +71,13 @@ async def send_product_info(message: Message, product_info: dict):
     
     await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard) # Отправка текстового сообщения с инлайн-клавиатурой
 
+def is_size_callback(callback_query: types.CallbackQuery) -> bool:
+    """ Определяет, что пользователь нажал на кнопку размера. """
+    if callback_query.data:
+        return callback_query.data.startswith('size_')
+    return False
 
-@router.callback_query(lambda c: c.data and c.data.startswith('size_'))
+@router.callback_query(is_size_callback)
 async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
     """ Выбор размера одежды. """
     selected_size = callback_query.data.replace('size_', '')
