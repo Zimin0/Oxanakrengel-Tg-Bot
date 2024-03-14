@@ -55,17 +55,21 @@ async def send_product_info(message: Message, product_info: dict):
         f"<a href='{product_info['url']}'>Подробнее о товаре</a>\n\n"
         f"{product_info['description']}"
     )
+    
+    buttons = []
+    for size in product_info['sizes']:
+        new_button = [InlineKeyboardButton(text=size, callback_data=f"size_{size}")] # Создание кнопок для каждого размера
+        buttons.append(new_button) 
 
-    # Создание кнопок для каждого размера
-    buttons = [[InlineKeyboardButton(text=size, callback_data=f"size_{size}")] for size in product_info['sizes']]
-    # Создание инлайн-клавиатуры с этими кнопками
-    size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    # Отправка медиа, если оно есть
-    media = [types.InputMediaPhoto(media=url) for url in product_info['image_urls']]
+    size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons) # Создание инлайн-клавиатуры с этими кнопками
+    
+    media = []
+    for url in product_info['image_urls']:
+        media.append(types.InputMediaPhoto(media=url))
     if media:
-        await message.answer_media_group(media)
-    # Отправка текстового сообщения с инлайн-клавиатурой
-    await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard)
+        await message.answer_media_group(media) # Отправка медиа в виде альбома
+    
+    await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard) # Отправка текстового сообщения с инлайн-клавиатурой
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith('size_'))
