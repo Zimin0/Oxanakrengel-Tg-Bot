@@ -17,6 +17,8 @@ from aiogram import Bot, types
 from create_links import get_bot_link_with_arg, get_product_link_in_shop
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from bs_parser import WebPageParser
+# from aiogram.dispatcher.filters import StateFilter
+
 
 load_dotenv()
 
@@ -33,7 +35,15 @@ class OrderClothes(StatesGroup):
     choose_size = State()
     choose_payment_method = State()
     get_personal_data = State()
+    choose_delivery_method = State() 
     send_request_to_support = State()
+
+class PersonalDataForm(StatesGroup):
+    wait_for_name = State()
+    wait_for_surname = State()
+    wait_for_email = State()
+    wait_for_phone_number = State()
+    wait_for_delivery_address = State()
 
 
 def get_args_from_message(message: Message) -> str:
@@ -49,6 +59,15 @@ def is_size_callback(callback_query: types.CallbackQuery) -> bool:
     if callback_query.data:
         return callback_query.data.startswith('size_')
     return False
+
+def get_delivery_keyboard() -> InlineKeyboardMarkup:
+    """Возвращает инлайн-клавиатуру для выбора типа доставки."""
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Доставка курьером по России", callback_data="delivery_courier_russia")],
+        [InlineKeyboardButton(text="Самовывоз", callback_data="delivery_pickup")],
+        [InlineKeyboardButton(text="Доставка курьером по Москве", callback_data="delivery_courier_moscow")]
+    ])
+    return keyboard
 
 def get_payment_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для выбора способа оплаты."""
@@ -114,7 +133,7 @@ async def process_size_callback(callback_query: types.CallbackQuery, state: FSMC
         selected_size = callback_query.data.replace('size_', '')
         await state.update_data(selected_size=selected_size)  # Сохранение выбранного размера
         await callback_query.message.answer(
-            text=f"{selected_size}-й размер, отлично! Теперь выберите <b>способ оплаты</b>:",
+            text=f"{selected_size}-й размер, отлично! Теперь выберите <b>способ оплаты</b>💲:",
             reply_markup=get_payment_keyboard()
         )
         await state.set_state(OrderClothes.choose_payment_method)  # Переход к выбору способа оплаты
@@ -133,9 +152,65 @@ async def process_payment_callback(callback_query: types.CallbackQuery, state: F
         payment_method = callback_query.data.split('_')[-1]  # Извлекаем метод оплаты из callback_data
         await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
         await callback_query.message.answer(f"Способ оплаты <b>{payment_method.capitalize()}</b> выбран.")
-        await state.set_state(OrderClothes.get_personal_data)
+        await state.set_state(OrderClothes.choose_delivery_method)
 
     await callback_query.answer()
+    await callback_query.message.answer("Выберите тип доставки:", reply_markup=get_delivery_keyboard())
+
+def is_delivery_callback(callback_query: types.CallbackQuery) -> bool:
+    """Проверяет, является ли callback_query выбором типа доставки."""
+    return callback_query.data.startswith("delivery_")
+
+@router.callback_query(is_delivery_callback)
+async def process_delivery_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    user_data = await state.get_data()
+    if 'delivery_method' in user_data:
+        await callback_query.message.answer("Вы уже выбрали способ доставки: " + user_data["delivery_method"].replace('_', ' ').capitalize())
+    else:
+        delivery_method = callback_query.data.split("_")[1]  # Извлекаем тип доставки из callback_data
+        await state.update_data(delivery_method=delivery_method)
+        await state.set_state(PersonalDataForm.wait_for_name)
+        await callback_query.message.answer("Выбран способ доставки: " + delivery_method.replace('_', ' ').capitalize())
+    await state.set_state(PersonalDataForm.wait_for_name)
+    await callback_query.message.answer("Введите ваше имя:")
+    await callback_query.answer()
+    
+# Запрос имени
+@router.message(PersonalDataForm.wait_for_name)
+async def process_name(message: Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(PersonalDataForm.wait_for_surname)
+    await message.answer("Введите вашу фамилию:")
+
+# Запрос фамилии
+@router.message(PersonalDataForm.wait_for_surname)
+async def process_surname(message: Message, state: FSMContext):
+    await state.update_data(surname=message.text)
+    await state.set_state(PersonalDataForm.wait_for_email)
+    await message.answer("Введите ваш email:")
+
+# Запрос email
+@router.message(PersonalDataForm.wait_for_email)
+async def process_email(message: Message, state: FSMContext):
+    await state.update_data(email=message.text)
+    await state.set_state(PersonalDataForm.wait_for_phone_number)
+    await message.answer("Введите ваш номер телефона:")
+
+# Запрос номера телефона
+@router.message(PersonalDataForm.wait_for_phone_number)
+async def process_phone_number(message: Message, state: FSMContext):
+    await state.update_data(phone_number=message.text)
+    await state.set_state(PersonalDataForm.wait_for_delivery_address)
+    await message.answer("Введите адрес доставки:")
+
+# Запрос адреса доставки
+@router.message(PersonalDataForm.wait_for_delivery_address)
+async def process_delivery_address(message: Message, state: FSMContext):
+    await state.update_data(delivery_address=message.text)
+    user_data = await state.get_data()
+    await state.clear()
+    await message.answer(f"Спасибо, ваши данные:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\nEmail: {user_data['email']}\nТелефон: {user_data['phone_number']}\nАдрес доставки: {user_data['delivery_address']}\nВаши данные успешно сохранены, мы скоро свяжемся с вами!")
+
 
 async def main() -> None:
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
