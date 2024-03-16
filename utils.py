@@ -2,6 +2,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram import types
 from aiogram.types import Message
 
+import re
+
 def is_size_callback(callback_query: types.CallbackQuery) -> bool:
     """ Определяет, что пользователь нажал на кнопку размера. """
     if callback_query.data:
@@ -53,3 +55,29 @@ def get_sizes_keyboard(product_info: dict) -> InlineKeyboardMarkup:
         buttons.append(new_button) 
     size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons) # Создание инлайн-клавиатуры с этими кнопками
     return size_keyboard
+
+class Validators:
+    """ Валидаторы для личных данных пользователя. """
+    @staticmethod
+    def validate_name(name):
+        """Проверка имени на корректность."""
+        if not re.match(r'^[A-Za-zА-Яа-я ]+$', name):
+            raise ValueError("Имя должно содержать только буквы и пробелы.")
+
+    @staticmethod
+    def validate_email(email):
+        """Проверка email с помощью регулярного выражения."""
+        if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+            raise ValueError("Некорректный формат электронной почты.")
+
+    @staticmethod
+    def validate_phone_number(phone_number):
+        """Проверка телефонного номера."""
+        if not re.match(r'^\+?[1-9]\d{10,14}$', phone_number):
+            raise ValueError("Некорректный формат номера телефона.")
+
+    @staticmethod
+    def validate_address(delivery_address):
+        """Простая проверка адреса доставки на непустоту."""
+        if not delivery_address or not delivery_address.strip():
+            raise ValueError("Адрес доставки не может быть пустым.")

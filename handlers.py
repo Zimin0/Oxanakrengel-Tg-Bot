@@ -5,11 +5,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 
-from utils import is_size_callback, is_payment_callback, get_product_content, get_args_from_message
+from utils import is_size_callback, is_payment_callback, get_product_content, get_args_from_message, Validators
 from keyboards import get_delivery_keyboard, get_payment_keyboard
 from create_links import get_product_link_in_shop
 from bs_parser import WebPageParser
 from states import OrderClothes, PersonalDataForm
+
 
 
 router = Router()
@@ -92,6 +93,12 @@ async def process_delivery_callback(callback_query: types.CallbackQuery, state: 
 @router.message(PersonalDataForm.wait_for_name)
 async def process_name(message: Message, state: FSMContext):
     """ Получает имя """
+    try:
+        Validators.validate_name(message.text)
+    except ValueError as e:
+        await message.answer(str(e) + "\n" + "Введите ваше имя:")
+        return 
+    
     await state.update_data(name=message.text)
     await state.set_state(PersonalDataForm.wait_for_surname)
     await message.answer("Введите вашу фамилию:")
@@ -99,6 +106,11 @@ async def process_name(message: Message, state: FSMContext):
 @router.message(PersonalDataForm.wait_for_surname)
 async def process_surname(message: Message, state: FSMContext):
     """ Получает фамилию """
+    try:
+        Validators.validate_name(message.text)
+    except ValueError as e:
+        await message.answer(str(e) + "\n" + "Введите вашу фамилию:")
+        return 
     await state.update_data(surname=message.text)
     await state.set_state(PersonalDataForm.wait_for_email)
     await message.answer("Введите ваш email:")
@@ -106,6 +118,11 @@ async def process_surname(message: Message, state: FSMContext):
 @router.message(PersonalDataForm.wait_for_email)
 async def process_email(message: Message, state: FSMContext):
     """ Получает email """
+    try:
+        Validators.validate_email(message.text)
+    except ValueError as e:
+        await message.answer(str(e) + "\n" + "Введите ваш email:")
+        return 
     await state.update_data(email=message.text)
     await state.set_state(PersonalDataForm.wait_for_phone_number)
     await message.answer("Введите ваш номер телефона:")
@@ -113,13 +130,23 @@ async def process_email(message: Message, state: FSMContext):
 @router.message(PersonalDataForm.wait_for_phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
     """ Получает телефон """
+    try:
+        Validators.validate_phone_number(message.text)
+    except ValueError as e:
+        await message.answer(str(e) + "\n" + "Введите ваш телефон:")
+        return
     await state.update_data(phone_number=message.text)
     await state.set_state(PersonalDataForm.wait_for_delivery_address)
-    await message.answer("Введите адрес доставки:")
+    await message.answer("Введите адрес доставки: \n (Например: Россия, Санкт-Петербург, ул. Ломоносова 9, корпус 4, квартира 312)")
 
 @router.message(PersonalDataForm.wait_for_delivery_address)
 async def process_delivery_address(message: Message, state: FSMContext):
     """ Получает адрес доставки """
+    try:
+        Validators.validate_address(message.text)
+    except ValueError as e:
+        await message.answer(str(e) + "\n" + "Введите ваш полный адрес:")
+        return
     await state.update_data(delivery_address=message.text)
     user_data = await state.get_data()
     await state.clear()
