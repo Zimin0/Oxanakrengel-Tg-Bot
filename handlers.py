@@ -5,11 +5,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 
-from utils import is_size_callback, is_payment_callback, get_product_content, get_args_from_message, Validators
+from utils import is_size_callback, is_payment_callback, is_delivery_callback, get_product_content, get_args_from_message, Validators
 from keyboards import get_delivery_keyboard, get_payment_keyboard
 from create_links import get_product_link_in_shop
 from bs_parser import WebPageParser
 from states import OrderClothes, PersonalDataForm
+from config import PHYSICAL_SHOP_ADDRESS
 
 
 
@@ -70,11 +71,7 @@ async def process_payment_callback(callback_query: types.CallbackQuery, state: F
         await state.set_state(OrderClothes.choose_delivery_method)
 
     await callback_query.answer()
-    await callback_query.message.answer("Выберите тип получения товара", reply_markup=get_delivery_keyboard())
-
-def is_delivery_callback(callback_query: types.CallbackQuery) -> bool:
-    """Проверяет, является ли callback_query выбором типа доставки."""
-    return callback_query.data.startswith("delivery_")
+    await callback_query.message.answer("Выберите способ получения товара", reply_markup=get_delivery_keyboard())
 
 @router.callback_query(is_delivery_callback)
 async def process_delivery_callback(callback_query: types.CallbackQuery, state: FSMContext):
@@ -82,7 +79,7 @@ async def process_delivery_callback(callback_query: types.CallbackQuery, state: 
     if 'delivery_method' in user_data:
         await callback_query.message.answer("Вы уже выбрали способ доставки: " + user_data["delivery_method"].replace('_', ' ').capitalize())
     else:
-        delivery_method = callback_query.data.split("_")[1]  # Извлекаем тип доставки из callback_data
+        delivery_method = callback_query.data  # Извлекаем тип доставки из callback_data
         await state.update_data(delivery_method=delivery_method)
         await state.set_state(PersonalDataForm.wait_for_name)
         await callback_query.message.answer("Выбран способ доставки: " + delivery_method.replace('_', ' ').capitalize())
@@ -129,25 +126,41 @@ async def process_email(message: Message, state: FSMContext):
 
 @router.message(PersonalDataForm.wait_for_phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
-    """ Получает телефон """
     try:
         Validators.validate_phone_number(message.text)
     except ValueError as e:
         await message.answer(str(e) + "\n" + "Введите ваш телефон:")
         return
     await state.update_data(phone_number=message.text)
-    await state.set_state(PersonalDataForm.wait_for_delivery_address)
-    await message.answer("Введите адрес доставки: \n (Например: Россия, Санкт-Петербург, ул. Ломоносова 9, корпус 4, квартира 312)")
+    
+    # Тут должна быть проверка на способ доставки
+    user_data = await state.get_data()
+    print(user_data.get("delivery_method") )
+    if user_data.get("delivery_method") == 'delivery_pickup':
+        # Если выбран самовывоз, выводим адрес и завершаем процесс
+        await message.answer('Вы можете забрать свой заказ по адресу:\n' + PHYSICAL_SHOP_ADDRESS)
+        await state.clear()  # Очистка состояния после завершения процесса
+    else:
+        # Если требуется доставка, переходим к запросу адреса
+        await state.set_state(PersonalDataForm.wait_for_delivery_address)
+        await message.answer("Введите адрес доставки:")
 
 @router.message(PersonalDataForm.wait_for_delivery_address)
 async def process_delivery_address(message: Message, state: FSMContext):
-    """ Получает адрес доставки """
     try:
+        # Предположим, что функция Validators.validate_address() существует
         Validators.validate_address(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите ваш полный адрес:")
+        await message.answer(str(e) + "\nПожалуйста, введите полный адрес доставки:")
         return
+    
+    # Если валидация прошла успешно, сохраняем адрес и выводим подтверждение
     await state.update_data(delivery_address=message.text)
     user_data = await state.get_data()
-    await state.clear()
-    await message.answer(f"Спасибо, ваши данные:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\nEmail: {user_data['email']}\nТелефон: {user_data['phone_number']}\nАдрес доставки: {user_data['delivery_address']}\nВаши данные успешно сохранены, мы скоро свяжемся с вами!")
+    
+    await state.clear()  # Очистка состояния после завершения процесса
+    await message.answer(
+        f"Спасибо, ваши данные:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
+        f"Email: {user_data['email']}\nТелефон: {user_data['phone_number']}\n"
+        f"Адрес доставки: {user_data['delivery_address']}\nВаши данные успешно сохранены, мы скоро свяжемся с вами!"
+    )

@@ -14,6 +14,10 @@ def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
     """Проверяет, является ли callback_query выбором способа оплаты."""
     return callback_query.data.startswith('payment_')
 
+def is_delivery_callback(callback_query: types.CallbackQuery) -> bool:
+    """Проверяет, является ли callback_query выбором типа доставки."""
+    return callback_query.data.startswith("delivery_")
+
 def get_args_from_message(message: Message) -> str:
     """ Достает аргументы, переданные в ссылке в параметре ?start=... """
     parts = message.text.split(maxsplit=1)
