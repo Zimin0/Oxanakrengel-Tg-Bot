@@ -31,6 +31,7 @@ def get_product_content(product_info: dict) -> list[list, list, InlineKeyboardMa
     ]
     size_keyboard = get_sizes_keyboard(product_info)
     photoes = get_product_photoes(product_info)
+    message_text = "\n".join(message_text)
 
     return message_text, photoes, size_keyboard
 
