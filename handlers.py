@@ -44,12 +44,12 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
 async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     if "selected_size" in user_data:
-        await callback_query.message.answer("Вы уже выбрали размер товара.")
+        await callback_query.message.answer("Вы уже выбрали <b>размер</b> товара.")
     else:
         selected_size = callback_query.data.replace('size_', '')
         await state.update_data(selected_size=selected_size)  # Сохранение выбранного размера
         await callback_query.message.answer(
-            text=f"{selected_size}-й размер, отлично! Теперь выберите <b>способ оплаты</b>💲:",
+            text=f"<b>{selected_size}-й</b> размер, отлично! Теперь выберите <b>способ оплаты</b>💲:",
             reply_markup=get_payment_keyboard()
         )
         await state.set_state(OrderClothes.choose_payment_method)  # Переход к выбору способа оплаты
@@ -63,7 +63,7 @@ async def process_size_callback(callback_query: types.CallbackQuery, state: FSMC
 async def process_payment_callback(callback_query: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     if "payment_method" in user_data:
-        await callback_query.message.answer("Вы уже выбрали способ оплаты.")
+        await callback_query.message.answer("Вы уже выбрали <b>способ оплаты</b>.")
     else:
         payment_method = callback_query.data.split('_')[-1]  # Извлекаем метод оплаты из callback_data
         await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
@@ -71,20 +71,20 @@ async def process_payment_callback(callback_query: types.CallbackQuery, state: F
         await state.set_state(OrderClothes.choose_delivery_method)
 
     await callback_query.answer()
-    await callback_query.message.answer("Выберите способ получения товара", reply_markup=get_delivery_keyboard())
+    await callback_query.message.answer("Выберите <b>способ получения товара</b>", reply_markup=get_delivery_keyboard())
 
 @router.callback_query(is_delivery_callback)
 async def process_delivery_callback(callback_query: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     if 'delivery_method' in user_data:
-        await callback_query.message.answer("Вы уже выбрали способ доставки: " + user_data["delivery_method"].replace('_', ' ').capitalize())
+        await callback_query.message.answer("Вы уже выбрали <b>способ доставки</b>: " + user_data["delivery_method"].replace('_', ' ').capitalize())
     else:
         delivery_method = callback_query.data  # Извлекаем тип доставки из callback_data
         await state.update_data(delivery_method=delivery_method)
         await state.set_state(PersonalDataForm.wait_for_name)
         await callback_query.message.answer("Выбран способ доставки: " + delivery_method.replace('_', ' ').capitalize())
     await state.set_state(PersonalDataForm.wait_for_name)
-    await callback_query.message.answer("Введите ваше имя:")
+    await callback_query.message.answer("Введите ваше <b>имя</b>:")
     await callback_query.answer()
     
 @router.message(PersonalDataForm.wait_for_name)
@@ -93,7 +93,7 @@ async def process_name(message: Message, state: FSMContext):
     try:
         Validators.validate_name(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите ваше имя:")
+        await message.answer(str(e) + "\n" + "Введите ваше <b>имя</b>:")
         return 
     
     await state.update_data(name=message.text)
@@ -106,11 +106,11 @@ async def process_surname(message: Message, state: FSMContext):
     try:
         Validators.validate_name(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите вашу фамилию:")
+        await message.answer(str(e) + "\n" + "Введите вашу <b>фамилию</b>:")
         return 
     await state.update_data(surname=message.text)
     await state.set_state(PersonalDataForm.wait_for_email)
-    await message.answer("Введите ваш email:")
+    await message.answer("Введите ваш <b>email</b>:")
 
 @router.message(PersonalDataForm.wait_for_email)
 async def process_email(message: Message, state: FSMContext):
@@ -118,18 +118,18 @@ async def process_email(message: Message, state: FSMContext):
     try:
         Validators.validate_email(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите ваш email:")
+        await message.answer(str(e) + "\n" + "Введите ваш <b>email</b>:")
         return 
     await state.update_data(email=message.text)
     await state.set_state(PersonalDataForm.wait_for_phone_number)
-    await message.answer("Введите ваш номер телефона:")
+    await message.answer("Введите ваш <b>номер телефона</b>:")
 
 @router.message(PersonalDataForm.wait_for_phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
     try:
         Validators.validate_phone_number(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите ваш телефон:")
+        await message.answer(str(e) + "\n" + "Введите ваш <b>телефон</b>:")
         return
     await state.update_data(phone_number=message.text)
     
@@ -138,12 +138,12 @@ async def process_phone_number(message: Message, state: FSMContext):
     print(user_data.get("delivery_method") )
     if user_data.get("delivery_method") == 'delivery_pickup':
         # Если выбран самовывоз, выводим адрес и завершаем процесс
-        await message.answer('Вы можете забрать свой заказ по адресу:\n' + PHYSICAL_SHOP_ADDRESS)
+        await message.answer('Вы можете забрать свой заказ по <b>адресу</b>:\n' + PHYSICAL_SHOP_ADDRESS)
         await state.clear()  # Очистка состояния после завершения процесса
     else:
         # Если требуется доставка, переходим к запросу адреса
         await state.set_state(PersonalDataForm.wait_for_delivery_address)
-        await message.answer("Введите адрес доставки:")
+        await message.answer("Введите <b>адрес</b> доставки:")
 
 @router.message(PersonalDataForm.wait_for_delivery_address)
 async def process_delivery_address(message: Message, state: FSMContext):
@@ -151,7 +151,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
         # Предположим, что функция Validators.validate_address() существует
         Validators.validate_address(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\nПожалуйста, введите полный адрес доставки:")
+        await message.answer(str(e) + "\nПожалуйста, введите полный <b>адрес</b> доставки:")
         return
     
     # Если валидация прошла успешно, сохраняем адрес и выводим подтверждение
@@ -160,7 +160,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
     
     await state.clear()  # Очистка состояния после завершения процесса
     await message.answer(
-        f"Спасибо, ваши данные:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
+        f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
         f"Email: {user_data['email']}\nТелефон: {user_data['phone_number']}\n"
         f"Адрес доставки: {user_data['delivery_address']}\nВаши данные успешно сохранены, мы скоро свяжемся с вами!"
     )
