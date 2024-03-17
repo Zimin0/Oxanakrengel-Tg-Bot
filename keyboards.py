@@ -23,7 +23,7 @@ def get_confirmation_support_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="Да", callback_data="confirm_support_yes")],
         [InlineKeyboardButton(text='Нет', callback_data="suport_request")]
     ])
-    return merge_keyboards(keyboard, get_support_keyboard())
+    return keyboard
 
 def get_support_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру с кнопкой "тех.поддержка" """

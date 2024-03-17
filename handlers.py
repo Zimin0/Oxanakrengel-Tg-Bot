@@ -47,6 +47,7 @@ async def process_start_callback(callback_query: types.CallbackQuery, state: FSM
     product_name = user_data.get('last_product_slug')
     await process_start_command_or_callback(product_name, message=callback_query.message, state=state)
     await callback_query.answer()
+    await state.clear()
 
 @router.callback_query(is_size_callback)
 async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
@@ -174,11 +175,16 @@ async def process_delivery_address(message: Message, state: FSMContext):
 
 @router.callback_query(is_support_callback)
 async def process_support_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    await callback_query.message.answer('Оставьте свое сообщение в тех. поддержку далее: ')
+    await callback_query.message.answer('Оставьте свое <b>сообщение в тех. поддержку</b>:')
     await state.set_state(SupportForm.wait_for_message)
 
 @router.message(SupportForm.wait_for_message)
 async def process_support_message(message: Message, state: FSMContext):
+    try:
+        Validators.validate_support_message(message.text)
+    except ValueError as e:
+        await message.answer(str(e) + "\n" + "Оставьте свое <b>сообщение в тех. поддержку</b>:")
+        return 
     await state.update_data(support_message=message.text)
     await state.set_state(SupportForm.wait_for_confirmation)
     short_text = message.text[:40] + '...'
@@ -191,7 +197,7 @@ async def process_support_confirm_message(callback_query: types.CallbackQuery, s
     await callback_query.message.answer("Ваша заявка сохранена! Мы решим ее в ближайшее время.")
     user_data = await state.get_data()
     keyboard = get_last_product_keyboard(product_name=user_data.get('last_product_slug'))
-    await callback_query.message.answer("Вы можете вернуться к последнему товару, нажав кнопку товара ниже...", reply_markup=keyboard)
+    await callback_query.message.answer("Вы можете вернуться к <b>последнему товару</b>, нажав кнопку товара ниже...", reply_markup=keyboard)
     await callback_query.answer()
 
 @router.callback_query(lambda c: c.data and c.data.startswith("last_product"))

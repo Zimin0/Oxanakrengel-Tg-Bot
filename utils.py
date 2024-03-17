@@ -93,3 +93,10 @@ class Validators:
         """Простая проверка адреса доставки на непустоту."""
         if not delivery_address or not delivery_address.strip():
             raise ValueError("Адрес доставки не может быть пустым.")
+    
+    @staticmethod
+    def validate_support_message(message):
+        """ Валидация сообщения в поддержку """
+        message = message.strip()
+        if len(message.split()) < 10 or len(message) < 40:
+            raise ValueError("Запрос в поддержку должен содержать минимум 10 слов и 40 символов.")
