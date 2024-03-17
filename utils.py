@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram import types
 from aiogram.types import Message
 
+from keyboards import get_sizes_keyboard
 import re
 
 def is_size_callback(callback_query: types.CallbackQuery) -> bool:
@@ -12,7 +13,7 @@ def is_size_callback(callback_query: types.CallbackQuery) -> bool:
 
 def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
     """Проверяет, является ли callback_query выбором способа оплаты."""
-    return callback_query.data.startswith('payment_')
+    return callback_query.data.startswith('payment:')
 
 def is_delivery_callback(callback_query: types.CallbackQuery) -> bool:
     """Проверяет, является ли callback_query выбором типа доставки."""
@@ -37,10 +38,10 @@ def get_args_from_message(message: Message) -> str:
 def get_product_content(product_info: dict) -> list[list, list, InlineKeyboardMarkup]:
     """ Форматирует и возвращает текстовое сообщение с информацией о товаре и клавиатуру """
     message_text = [
-        f"<b>{product_info['title']}</b>\n"
-        f"Цена: <i>{product_info['price'].lower()}</i>\n"
-        f"Доступные размеры: {', '.join([f'<b>{size}</b>' for size in product_info['sizes']])}\n"
-        f"<a href='{product_info['url']}'>Подробнее о товаре</a>\n\n"
+        f"✔️ <b>{product_info['title']}</b> ✔️ \n\n"
+        f"☑️ Цена: <i>{product_info['price'].lower()}</i>\n"
+        f"☑️ Доступные размеры: {', '.join([f'<b>{size}</b>' for size in product_info['sizes']])}\n"
+        f"\n<a href='{product_info['url']}'>Подробнее о товаре ⏩</a>\n\n"
         f"{product_info['description']}"
     ]
     size_keyboard = get_sizes_keyboard(product_info)
@@ -57,16 +58,7 @@ def get_product_photoes(product_info: dict) -> list:
         media.append(types.InputMediaPhoto(media=url))
     return media
 
-def get_sizes_keyboard(product_info: dict) -> InlineKeyboardMarkup:
-    """ Возвращает клавиатуру с доступными размерами товара. """
-    buttons = []
-    if not product_info['sizes']:
-        return None
-    for size in product_info['sizes']:
-        new_button = [InlineKeyboardButton(text=size, callback_data=f"size_{size}")] # Создание кнопок для каждого размера
-        buttons.append(new_button) 
-    size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons) # Создание инлайн-клавиатуры с этими кнопками
-    return size_keyboard
+
 
 class Validators:
     """ Валидаторы для личных данных пользователя. """

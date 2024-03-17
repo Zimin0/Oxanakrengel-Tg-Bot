@@ -10,7 +10,7 @@ from keyboards import get_delivery_keyboard, get_last_product_keyboard, get_conf
 from create_links import get_product_link_in_shop
 from bs_parser import WebPageParser
 from states import OrderClothes, PersonalDataForm, SupportForm
-from config import PHYSICAL_SHOP_ADDRESS
+from config import PHYSICAL_SHOP_ADDRESS, PAYMENT_METHODS
 
 
 router = Router()
@@ -28,7 +28,7 @@ async def process_start_command_or_callback(data: str, message: Message = None, 
     if photoes:
         await message.answer_media_group(photoes)
     if not size_keyboard:
-        message_text.append("Нет доступных размеров.")
+        message_text.append("Нет доступных размеров❌")
     await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard)
     await state.set_state(OrderClothes.choose_size)
 
@@ -72,15 +72,17 @@ async def process_size_callback(callback_query: types.CallbackQuery, state: FSMC
 async def process_payment_callback(callback_query: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     if "payment_method" in user_data:
-        await callback_query.message.answer("Вы уже выбрали <b>способ оплаты</b>.")
+        
+        await callback_query.message.answer("Вы уже выбрали <b>способ оплаты</b>:.")
     else:
-        payment_method = callback_query.data.split('_')[-1]  # Извлекаем метод оплаты из callback_data
+        payment_method = callback_query.data.split(':')[1]  # Извлекаем метод оплаты из callback_data
+        readable_payment_method = PAYMENT_METHODS.get(payment_method, 'Не знаю...')
         await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
-        await callback_query.message.answer(f"Способ оплаты <b>{payment_method.capitalize()}</b> выбран.")
+        await callback_query.message.answer(f"Способ оплаты выбран: <b>\"{readable_payment_method}\"</b>✅")
         await state.set_state(OrderClothes.choose_delivery_method)
 
     await callback_query.answer()
-    await callback_query.message.answer("Выберите <b>способ получения товара</b>", reply_markup=get_delivery_keyboard())
+    await callback_query.message.answer("Выберите <b>способ получения товара</b>🛻:", reply_markup=get_delivery_keyboard())
 
 @router.callback_query(is_delivery_callback)
 async def process_delivery_callback(callback_query: types.CallbackQuery, state: FSMContext):
@@ -91,9 +93,9 @@ async def process_delivery_callback(callback_query: types.CallbackQuery, state: 
         delivery_method = callback_query.data  # Извлекаем тип доставки из callback_data
         await state.update_data(delivery_method=delivery_method)
         await state.set_state(PersonalDataForm.wait_for_name)
-        await callback_query.message.answer("Выбран способ доставки: " + delivery_method.replace('_', ' ').capitalize())
+        await callback_query.message.answer(f"Выбран способ доставки: {delivery_method.replace('_', ' ').capitalize()}✅")
     await state.set_state(PersonalDataForm.wait_for_name)
-    await callback_query.message.answer("Введите ваше <b>имя</b>:")
+    await callback_query.message.answer("Введите ваше <b>имя</b>✒️:")
     await callback_query.answer()
     
 @router.message(PersonalDataForm.wait_for_name)
@@ -102,12 +104,12 @@ async def process_name(message: Message, state: FSMContext):
     try:
         Validators.validate_name(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите ваше <b>имя</b>:")
+        await message.answer(str(e) + "\n" + "Введите ваше <b>имя</b>✒️:")
         return 
     
     await state.update_data(name=message.text)
     await state.set_state(PersonalDataForm.wait_for_surname)
-    await message.answer("Введите вашу фамилию:")
+    await message.answer("Введите вашу фамилию✒️:")
 
 @router.message(PersonalDataForm.wait_for_surname)
 async def process_surname(message: Message, state: FSMContext):
@@ -115,7 +117,7 @@ async def process_surname(message: Message, state: FSMContext):
     try:
         Validators.validate_name(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите вашу <b>фамилию</b>:")
+        await message.answer(str(e) + "\n" + "Введите вашу <b>фамилию</b>✒️:")
         return 
     await state.update_data(surname=message.text)
     await state.set_state(PersonalDataForm.wait_for_email)
@@ -127,7 +129,7 @@ async def process_email(message: Message, state: FSMContext):
     try:
         Validators.validate_email(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите ваш <b>email</b>:")
+        await message.answer(str(e) + "\n" + "Введите ваш <b>email</b>📧:")
         return 
     await state.update_data(email=message.text)
     await state.set_state(PersonalDataForm.wait_for_phone_number)
@@ -138,7 +140,7 @@ async def process_phone_number(message: Message, state: FSMContext):
     try:
         Validators.validate_phone_number(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Введите ваш <b>телефон</b>:")
+        await message.answer(str(e) + "\n" + "Введите ваш <b>телефон</b>📞:")
         return
     await state.update_data(phone_number=message.text)
     
@@ -147,19 +149,19 @@ async def process_phone_number(message: Message, state: FSMContext):
     print(user_data.get("delivery_method") )
     if user_data.get("delivery_method") == 'delivery_pickup':
         # Если выбран самовывоз, выводим адрес и завершаем процесс
-        await message.answer('Вы можете забрать свой заказ по <b>адресу</b>:\n' + PHYSICAL_SHOP_ADDRESS)
+        await message.answer('Вы можете забрать свой заказ по <b>адресу</b>🧱:\n' + PHYSICAL_SHOP_ADDRESS)
         await state.clear()  # Очистка состояния после завершения процесса
     else:
         # Если требуется доставка, переходим к запросу адреса
         await state.set_state(PersonalDataForm.wait_for_delivery_address)
-        await message.answer("Введите <b>адрес</b> доставки:")
+        await message.answer("Введите <b>адрес</b> доставки🧱:")
 
 @router.message(PersonalDataForm.wait_for_delivery_address)
 async def process_delivery_address(message: Message, state: FSMContext):
     try:
         Validators.validate_address(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\nПожалуйста, введите полный <b>адрес</b> доставки:")
+        await message.answer(str(e) + "\nПожалуйста, введите полный <b>адрес</b> доставки🧱:")
         return
     
     # Если валидация прошла успешно, сохраняем адрес и выводим подтверждение
@@ -183,7 +185,7 @@ async def process_support_message(message: Message, state: FSMContext):
     try:
         Validators.validate_support_message(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Оставьте свое <b>сообщение в тех. поддержку</b>:")
+        await message.answer(str(e) + "\n" + "Оставьте свое <b>сообщение в тех. поддержку</b>✒️:")
         return 
     await state.update_data(support_message=message.text)
     await state.set_state(SupportForm.wait_for_confirmation)
@@ -194,10 +196,10 @@ async def process_support_message(message: Message, state: FSMContext):
 @router.callback_query(is_support_message_confirmation_callback)
 async def process_support_confirm_message(callback_query: types.CallbackQuery, state: FSMContext):
     """Обработчик подтверждения сообщения техподдержки с кнопкой возврата к последнему товару."""
-    await callback_query.message.answer("Ваша заявка сохранена! Мы решим ее в ближайшее время.")
+    await callback_query.message.answer("Ваша заявка сохранена! Мы решим ее в ближайшее время✅")
     user_data = await state.get_data()
     keyboard = get_last_product_keyboard(product_name=user_data.get('last_product_slug'))
-    await callback_query.message.answer("Вы можете вернуться к <b>последнему товару</b>, нажав кнопку товара ниже...", reply_markup=keyboard)
+    await callback_query.message.answer("Вы можете вернуться к <b>последнему товару</b>, нажав кнопку товара ниже⬇️", reply_markup=keyboard)
     await callback_query.answer()
 
 @router.callback_query(lambda c: c.data and c.data.startswith("last_product"))
