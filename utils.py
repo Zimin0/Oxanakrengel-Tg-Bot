@@ -18,6 +18,14 @@ def is_delivery_callback(callback_query: types.CallbackQuery) -> bool:
     """Проверяет, является ли callback_query выбором типа доставки."""
     return callback_query.data.startswith("delivery_")
 
+def is_support_callback(callback_query: types.CallbackQuery) -> bool:
+    """ Проверяет, является ли callback_query нажатием кнопки "техподдержка". """
+    return callback_query.data.startswith('suport_request')
+
+def is_support_message_confirmation_callback(callback_query: types.CallbackQuery) -> bool:
+    """ Проверяет, является ли callback_query нажатием кнопки "да" во время запроса в техподдержку. """
+    return callback_query.data.startswith('confirm_support_yes')
+
 def get_args_from_message(message: Message) -> str:
     """ Достает аргументы, переданные в ссылке в параметре ?start=... """
     parts = message.text.split(maxsplit=1)

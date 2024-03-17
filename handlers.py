@@ -5,40 +5,48 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 
-from utils import is_size_callback, is_payment_callback, is_delivery_callback, get_product_content, get_args_from_message, Validators
-from keyboards import get_delivery_keyboard, get_payment_keyboard
+from utils import is_size_callback, is_payment_callback, is_support_callback, is_delivery_callback, get_product_content, get_args_from_message, is_support_message_confirmation_callback, Validators
+from keyboards import get_delivery_keyboard, get_last_product_keyboard, get_confirmation_support_keyboard, get_payment_keyboard
 from create_links import get_product_link_in_shop
 from bs_parser import WebPageParser
-from states import OrderClothes, PersonalDataForm
+from states import OrderClothes, PersonalDataForm, SupportForm
 from config import PHYSICAL_SHOP_ADDRESS
-
 
 
 router = Router()
 parser = WebPageParser(debug=True, folder='products_json', can_upload_from_file=True)
 
 ##################### Обработчики #####################
-@router.message(CommandStart())
-async def command_start_handler(message: Message, state: FSMContext) -> None:
-    """ Этот обработчик получает сообщения с командой /start """
-    await state.clear() 
+async def process_start_command_or_callback(data: str, message: Message = None, state: FSMContext = None):
+    """Логика обработки для команды /start и callback от inline-клавиатуры."""
     await state.set_state(OrderClothes.show_clothes)
-    current_state = await state.get_state()
-    print(current_state)
-    await message.answer(hbold("Ищу ваш товар в каталоге..."))
+    link_in_shop = get_product_link_in_shop(product_name=data)
+    filename, product_json_str = parser.run(link_in_shop, save_to_file=True)
+    product_json = json.loads(product_json_str)
 
-    product_name = get_args_from_message(message)
-    link_in_shop = get_product_link_in_shop(product_name)
-    filename, product_json_str = parser.run(link_in_shop, save_to_file=True)  # Получаем JSON в виде строки
-    product_json = json.loads(product_json_str)  # Преобразуем строку в словарь
     message_text, photoes, size_keyboard = get_product_content(product_json)
     if photoes:
-        await message.answer_media_group(photoes) # Отправка медиа в виде альбома
+        await message.answer_media_group(photoes)
     if not size_keyboard:
         message_text.append("Нет доступных размеров.")
-    await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard) # Отправка текстового сообщения с инлайн-клавиатурой
-
+    await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard)
     await state.set_state(OrderClothes.choose_size)
+
+@router.message(CommandStart())
+async def command_start_handler(message: types.Message, state: FSMContext):
+    """Обработчик команды /start."""
+    product_name = get_args_from_message(message)
+    await state.clear() 
+    await state.update_data(last_product_slug=product_name)
+    await process_start_command_or_callback(product_name, message=message, state=state)
+
+@router.callback_query(lambda c: c.data and c.data.startswith('get_product'))
+async def process_start_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    """Обработчик callback-кнопки, имитирующий команду /start с аргументом."""
+    user_data = await state.get_data()
+    product_name = user_data.get('last_product_slug')
+    await process_start_command_or_callback(product_name, message=callback_query.message, state=state)
+    await callback_query.answer()
 
 @router.callback_query(is_size_callback)
 async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
@@ -148,7 +156,6 @@ async def process_phone_number(message: Message, state: FSMContext):
 @router.message(PersonalDataForm.wait_for_delivery_address)
 async def process_delivery_address(message: Message, state: FSMContext):
     try:
-        # Предположим, что функция Validators.validate_address() существует
         Validators.validate_address(message.text)
     except ValueError as e:
         await message.answer(str(e) + "\nПожалуйста, введите полный <b>адрес</b> доставки:")
@@ -158,9 +165,39 @@ async def process_delivery_address(message: Message, state: FSMContext):
     await state.update_data(delivery_address=message.text)
     user_data = await state.get_data()
     
-    await state.clear()  # Очистка состояния после завершения процесса
+    # await state.clear()  # Очистка состояния после завершения процесса
     await message.answer(
         f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
         f"Email: {user_data['email']}\nТелефон: {user_data['phone_number']}\n"
         f"Адрес доставки: {user_data['delivery_address']}\nВаши данные успешно сохранены, мы скоро свяжемся с вами!"
     )
+
+@router.callback_query(is_support_callback)
+async def process_support_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    await callback_query.message.answer('Оставьте свое сообщение в тех. поддержку далее: ')
+    await state.set_state(SupportForm.wait_for_message)
+
+@router.message(SupportForm.wait_for_message)
+async def process_support_message(message: Message, state: FSMContext):
+    await state.update_data(support_message=message.text)
+    await state.set_state(SupportForm.wait_for_confirmation)
+    short_text = message.text[:40] + '...'
+    keyboard = get_confirmation_support_keyboard()
+    await message.answer(f'Отправить запрос: "{short_text}" ?', parse_mode='HTML', reply_markup=keyboard)
+
+@router.callback_query(is_support_message_confirmation_callback)
+async def process_support_confirm_message(callback_query: types.CallbackQuery, state: FSMContext):
+    """Обработчик подтверждения сообщения техподдержки с кнопкой возврата к последнему товару."""
+    await callback_query.message.answer("Ваша заявка сохранена! Мы решим ее в ближайшее время.")
+    user_data = await state.get_data()
+    keyboard = get_last_product_keyboard(product_name=user_data.get('last_product_slug'))
+    await callback_query.message.answer("Вы можете вернуться к последнему товару, нажав кнопку товара ниже...", reply_markup=keyboard)
+    await callback_query.answer()
+
+@router.callback_query(lambda c: c.data and c.data.startswith("last_product"))
+async def process_last_product_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    """Обработчик нажатия на inline кнопку последнего просмотренного товара."""
+    user_data = await state.get_data()
+    product_name = user_data.get('last_product_slug')
+    await process_start_command_or_callback(product_name, callback_query=callback_query, state=state)
+    await callback_query.answer()

@@ -14,3 +14,7 @@ class PersonalDataForm(StatesGroup):
     wait_for_email = State()
     wait_for_phone_number = State()
     wait_for_delivery_address = State()
+
+class SupportForm(StatesGroup):
+    wait_for_message = State()
+    wait_for_confirmation = State()
