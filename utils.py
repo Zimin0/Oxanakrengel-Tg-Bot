@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardMarkup
 from aiogram import types
 from aiogram.types import Message
 
@@ -50,15 +50,12 @@ def get_product_content(product_info: dict) -> list[list, list, InlineKeyboardMa
 
     return message_text, photoes, size_keyboard
 
-
 def get_product_photoes(product_info: dict) -> list:
     """ Возвращает фотографии товара с сайта. """
     media = []
     for url in product_info['image_urls']:
         media.append(types.InputMediaPhoto(media=url))
     return media
-
-
 
 class Validators:
     """ Валидаторы для личных данных пользователя. """
@@ -83,8 +80,8 @@ class Validators:
     @staticmethod
     def validate_address(delivery_address):
         """Простая проверка адреса доставки на непустоту."""
-        if not delivery_address or not delivery_address.strip():
-            raise ValueError("Адрес доставки не может быть пустым.")
+        if not delivery_address or not delivery_address.strip() or len(delivery_address) < 20:
+            raise ValueError("Это не похоже на адрес.")
     
     @staticmethod
     def validate_support_message(message):
