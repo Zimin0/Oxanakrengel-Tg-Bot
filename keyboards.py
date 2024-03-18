@@ -5,7 +5,7 @@ from config import PAYMENT_METHODS
 def get_delivery_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для выбора типа доставки."""
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Доставка курьером по Москве🚚", callback_data="delivery_moscow")]
+        [InlineKeyboardButton(text="Доставка курьером по Москве🚚", callback_data="delivery_moscow")],
         [InlineKeyboardButton(text="Доставка курьером по России🛫", callback_data="delivery_russia")],
         [InlineKeyboardButton(text="Самовывоз🏃🏼", callback_data="delivery_pickup")],
     ])
