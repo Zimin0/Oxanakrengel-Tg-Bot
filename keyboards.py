@@ -1,13 +1,11 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
-from config import PAYMENT_METHODS
+from config import PAYMENT_METHODS, SHIPPING_METHODS
 
 def get_delivery_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для выбора типа доставки."""
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Доставка курьером по Москве🚚", callback_data="delivery_moscow")],
-        [InlineKeyboardButton(text="Доставка курьером по России🛫", callback_data="delivery_russia")],
-        [InlineKeyboardButton(text="Самовывоз🏃🏼", callback_data="delivery_pickup")],
+        [InlineKeyboardButton(text=readable, callback_data=slug)] for slug, readable in SHIPPING_METHODS.items()
     ])
     return merge_keyboards(keyboard, get_support_keyboard())
 
@@ -21,15 +19,15 @@ def get_payment_keyboard() -> InlineKeyboardMarkup:
 def get_confirmation_support_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для подтверждение выбора. """
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Да✅", callback_data="confirm_support_yes")],
-        [InlineKeyboardButton(text='Нет❌', callback_data="suport_request")]
+        [InlineKeyboardButton(text="Да ✅", callback_data="confirm_support_yes")],
+        [InlineKeyboardButton(text='Нет ❌', callback_data="suport_request")]
     ])
     return keyboard
 
 def get_support_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру с кнопкой "тех.поддержка" """
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Тех. поддержка⚙️", callback_data="suport_request")],
+        [InlineKeyboardButton(text="Тех. поддержка ⚙️", callback_data="suport_request")],
     ])
     return keyboard
 
