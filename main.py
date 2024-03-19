@@ -10,13 +10,14 @@ from handlers.payment_handlers import payment_router
 
 from config import TOKEN
 
+bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+
 async def main() -> None:
     dp = Dispatcher() # Слушает входящие уведомления Telegram и передает их в handlers
     dp.include_router(product_choice_router)
     dp.include_router(personal_data_router)
     dp.include_router(support_router)
     dp.include_router(payment_router)
-    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
