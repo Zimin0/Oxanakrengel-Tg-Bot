@@ -4,6 +4,7 @@ from aiogram.types import Message
 from utils import Validators
 from states import PersonalDataForm
 from config import PHYSICAL_SHOP_ADDRESS
+from keyboards import get_pay_keyboard
 
 from aiogram import Router
 
@@ -81,4 +82,4 @@ async def process_delivery_address(message: Message, state: FSMContext):
         f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
         f"Email: {user_data['email']}\nТелефон: {user_data['phone_number']}\n"
         f"Адрес доставки: {user_data['delivery_address']}\nВаши данные успешно сохранены, мы скоро свяжемся с вами!"
-    )
+    , reply_markup=get_pay_keyboard())

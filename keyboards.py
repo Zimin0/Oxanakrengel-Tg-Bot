@@ -57,3 +57,10 @@ def get_sizes_keyboard(product_info: dict) -> InlineKeyboardMarkup:
         buttons.append(new_button) 
     size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons) # Создание инлайн-клавиатуры с этими кнопками
     return size_keyboard
+
+def get_pay_keyboard() -> InlineKeyboardMarkup:
+    """ Клавиарура "Сафонов, оплатить." """
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Сафонов, оплатить💵", callback_data="payment_request")],
+    ])
+    return keyboard

@@ -11,7 +11,7 @@ def is_size_callback(callback_query: types.CallbackQuery) -> bool:
         return callback_query.data.startswith('size_')
     return False
 
-def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
+def is_payment_choice_callback(callback_query: types.CallbackQuery) -> bool:
     """Проверяет, является ли callback_query выбором способа оплаты."""
     return callback_query.data.startswith('payment:')
 
@@ -26,6 +26,10 @@ def is_support_callback(callback_query: types.CallbackQuery) -> bool:
 def is_support_message_confirmation_callback(callback_query: types.CallbackQuery) -> bool:
     """ Проверяет, является ли callback_query нажатием кнопки "да" во время запроса в техподдержку. """
     return callback_query.data.startswith('confirm_support_yes')
+
+def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
+    """ Проверяет, является ли callback_query нажатием кнопки "оплатить". """
+    return callback_query.data.startswith('payment_')
 
 def get_args_from_message(message: Message) -> str:
     """ Достает аргументы, переданные в ссылке в параметре ?start=... """

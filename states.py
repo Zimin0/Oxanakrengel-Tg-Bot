@@ -18,3 +18,8 @@ class PersonalDataForm(StatesGroup):
 class SupportForm(StatesGroup):
     wait_for_message = State()
     wait_for_confirmation = State()
+
+class PaymentState(StatesGroup):
+    wait_for_payment = State()
+    success = State()
+    fail = State()

@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from utils import is_size_callback, is_payment_callback, is_delivery_callback, get_product_content, get_args_from_message
+from utils import is_size_callback, is_payment_choice_callback, is_delivery_callback, get_product_content, get_args_from_message
 from keyboards import get_delivery_keyboard, get_payment_keyboard
 from create_links import get_product_link_in_shop
 from bs_parser import WebPageParser
@@ -65,7 +65,7 @@ async def process_size_callback(callback_query: types.CallbackQuery, state: FSMC
         await state.set_state(OrderClothes.choose_payment_method)  # Переход к выбору способа оплаты
     await callback_query.answer()
 
-@product_choice_router.callback_query(is_payment_callback)
+@product_choice_router.callback_query(is_payment_choice_callback)
 async def process_payment_callback(callback_query: types.CallbackQuery, state: FSMContext):
     """ Выбор метода оплаты. """
     user_data = await state.get_data()
