@@ -2,6 +2,8 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram import types
 from aiogram.types import Message
 
+import config
+
 from keyboards import get_sizes_keyboard
 import re
 
@@ -61,35 +63,51 @@ def get_product_photoes(product_info: dict) -> list:
         media.append(types.InputMediaPhoto(media=url))
     return media
 
+def if_debug(func):
+    """Декоратор, отключающий валидацию в режиме отладки."""
+    def wrapper(*args, **kwargs):
+        if config.DEBUG:
+            return
+        else:
+            return func(*args, **kwargs)
+    return wrapper
+
 class Validators:
     """ Валидаторы для личных данных пользователя. """
+
+    @if_debug
     @staticmethod
     def validate_name(name):
         """Проверка имени на корректность."""
         if not re.match(r'^[A-Za-zА-Яа-я ]+$', name):
             raise ValueError("Имя должно содержать только буквы и пробелы.")
 
+    @if_debug
     @staticmethod
     def validate_email(email):
         """Проверка email с помощью регулярного выражения."""
         if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
             raise ValueError("Некорректный формат электронной почты.")
 
+    @if_debug
     @staticmethod
     def validate_phone_number(phone_number):
         """Проверка телефонного номера."""
         if not re.match(r'^\+?[1-9]\d{10,14}$', phone_number):
             raise ValueError("Некорректный формат номера телефона.")
 
+    @if_debug
     @staticmethod
     def validate_address(delivery_address):
         """Простая проверка адреса доставки на непустоту."""
         if not delivery_address or not delivery_address.strip() or len(delivery_address) < 20:
             raise ValueError("Это не похоже на адрес.")
     
+    @if_debug
     @staticmethod
     def validate_support_message(message):
         """ Валидация сообщения в поддержку """
         message = message.strip()
         if len(message.split()) < 10 or len(message) < 40:
             raise ValueError("Запрос в поддержку должен содержать минимум 10 слов и 40 символов.")
+        
