@@ -5,3 +5,4 @@
 /__pycache__
 /products_json
 ToDo.txt
+*.log
