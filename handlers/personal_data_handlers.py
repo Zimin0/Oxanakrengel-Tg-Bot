@@ -42,9 +42,9 @@ async def process_surname(message: Message, state: FSMContext):
 @personal_data_router.message(PersonalDataForm.wait_for_email)
 async def process_email(message: Message, state: FSMContext):
     """ Обработка email. """
-    INPUT_YOUR_EMAIL, INPUT_YOUR_EMAIL = load_phrases_from_json_file(
+    INPUT_YOUR_EMAIL, INPUT_YOUR_PHONE = load_phrases_from_json_file(
         "INPUT_YOUR_EMAIL",
-        "INPUT_YOUR_EMAIL"
+        "INPUT_YOUR_PHONE"
         )
     try:
         Validators.validate_email(message.text)
@@ -53,7 +53,7 @@ async def process_email(message: Message, state: FSMContext):
         return 
     await state.update_data(email=message.text)
     await state.set_state(PersonalDataForm.wait_for_phone_number)
-    await message.answer(INPUT_YOUR_EMAIL)
+    await message.answer(INPUT_YOUR_PHONE)
 
 @personal_data_router.message(PersonalDataForm.wait_for_phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
