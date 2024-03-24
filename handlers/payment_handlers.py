@@ -6,7 +6,8 @@ from aiogram.utils.markdown import hbold
 
 from states import PaymentState
 from payment import Payment
-from config import PAYMENT_METHODS, DEBUG
+from config import DEBUG
+from json_text_for_bot import load_phrases_from_json_file
 from utils import is_payment_callback
 
 payment_router = Router() 
@@ -15,6 +16,11 @@ payment = Payment()
 @payment_router.callback_query(is_payment_callback)
 async def process_pay_callback(callback_query: types.CallbackQuery, state: FSMContext):
     """Обработка нажатия на кнопку 'Оплатить'."""
+    PAYMENT_METHODS, PAYMENT_IS_SUCCESSFUL, ERROR_IN_PAYMENT = load_phrases_from_json_file(
+        "PAYMENT_METHODS",
+        "PAYMENT_IS_SUCCESSFUL",
+        "ERROR_IN_PAYMENT"
+    )
     await state.set_state(PaymentState.wait_for_payment)
     user_data = await state.get_data()
     
@@ -29,7 +35,7 @@ async def process_pay_callback(callback_query: types.CallbackQuery, state: FSMCo
                 f"Ваш выбранный способ оплаты: {hbold(readable_payment_method)}\n"
                 f"Тестовая ссылка для оплаты: {payment_link}\n\n"
             )
-            await callback_query.message.answer("Оплата успешна! Спасибо за вашу покупку 🎀")
+            await callback_query.message.answer(PAYMENT_IS_SUCCESSFUL)
         else:
             # Реальный режим оплаты
             prices = [LabeledPrice(label="Тестовый товар", amount=10000)] # 100.00 рублей
@@ -44,7 +50,7 @@ async def process_pay_callback(callback_query: types.CallbackQuery, state: FSMCo
                 payload="Custom-Payload"
             )
     else:
-        await callback_query.message.answer("Произошла ошибка при выборе способа оплаты.")
+        await callback_query.message.answer()
 
 @payment_router.pre_checkout_query()
 async def process_pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery):
@@ -54,5 +60,6 @@ async def process_pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery)
 @payment_router.message()
 async def successful_payment(message: types.Message):
     """Обработчик успешной оплаты."""
+    THANKS_FOR_PURCASE = load_phrases_from_json_file("THANKS_FOR_PURCASE")
     if message.successful_payment:
-        await message.answer("Спасибо за покупку!")
+        await message.answer(THANKS_FOR_PURCASE)

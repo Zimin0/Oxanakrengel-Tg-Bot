@@ -6,6 +6,7 @@ from aiogram.types import Message
 from utils import is_support_callback, is_support_message_confirmation_callback, Validators
 from keyboards import get_last_product_keyboard, get_confirmation_support_keyboard
 from states import SupportForm
+from json_text_for_bot import load_phrases_from_json_file
 
 support_router = Router()
 
@@ -19,24 +20,31 @@ async def process_support_callback(callback_query: types.CallbackQuery, state: F
 @support_router.message(SupportForm.wait_for_message)
 async def process_support_message(message: Message, state: FSMContext):
     """ Приглашение ввести текстовый запрос в тех.поддержку. """
+    LEAVE_YOUR_MESSAGE_TO_TECH, SEND_REQUEST = load_phrases_from_json_file(
+        "LEAVE_YOUR_MESSAGE_TO_TECH",
+        "SEND_REQUEST")
     try:
         Validators.validate_support_message(message.text)
     except ValueError as e:
-        await message.answer(str(e) + "\n" + "Оставьте свое <b>сообщение в тех. поддержку</b> ✒️:")
+        await message.answer(str(e) + "\n" + LEAVE_YOUR_MESSAGE_TO_TECH)
         return 
     await state.update_data(support_message=message.text)
     await state.set_state(SupportForm.wait_for_confirmation)
     short_text = message.text[:40] + '...'
     keyboard = get_confirmation_support_keyboard()
-    await message.answer(f'Отправить запрос: "{short_text}" ?', parse_mode='HTML', reply_markup=keyboard)
+    await message.answer(f'{SEND_REQUEST} "{short_text}" ?', parse_mode='HTML', reply_markup=keyboard)
 
 @support_router.callback_query(is_support_message_confirmation_callback)
 async def process_support_confirm_message(callback_query: types.CallbackQuery, state: FSMContext):
     """Обработчик подтверждения сообщения техподдержки с кнопкой возврата к последнему товару."""
-    await callback_query.message.answer("Ваша заявка сохранена! Мы решим ее в ближайшее время ✅")
+    YOUR_REQUEST_IS_SAVED, YOUR_CAN_RETURN_TO_THE_LAST_PRODUCT = load_phrases_from_json_file(
+        "YOUR_REQUEST_IS_SAVED",
+        "YOUR_CAN_RETURN_TO_THE_LAST_PRODUCT"
+        )
+    await callback_query.message.answer(YOUR_REQUEST_IS_SAVED)
     user_data = await state.get_data()
     keyboard = get_last_product_keyboard(product_name=user_data.get('last_product_slug'))
-    await callback_query.message.answer("Вы можете вернуться к <b>последнему товару</b>, нажав кнопку товара ниже ⬇️", reply_markup=keyboard)
+    await callback_query.message.answer(YOUR_CAN_RETURN_TO_THE_LAST_PRODUCT, reply_markup=keyboard)
     await callback_query.answer()
 
 @support_router.callback_query(lambda c: c.data and c.data.startswith("last_product"))

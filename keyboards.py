@@ -1,9 +1,11 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
-from config import PAYMENT_METHODS, SHIPPING_METHODS
+from config import DEBUG
+from json_text_for_bot import load_phrases_from_json_file
 
 def get_delivery_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для выбора типа доставки."""
+    SHIPPING_METHODS = load_phrases_from_json_file("SHIPPING_METHODS")
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=readable, callback_data=slug)] for slug, readable in SHIPPING_METHODS.items()
     ])
@@ -11,6 +13,7 @@ def get_delivery_keyboard() -> InlineKeyboardMarkup:
 
 def get_payment_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для выбора способа оплаты."""
+    PAYMENT_METHODS = load_phrases_from_json_file("PAYMENT_METHODS")
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=readable, callback_data='payment:'+slug) for slug, readable in PAYMENT_METHODS.items()]
     ])
@@ -18,25 +21,28 @@ def get_payment_keyboard() -> InlineKeyboardMarkup:
 
 def get_confirmation_support_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для подтверждение выбора. """
+    YES, NO = load_phrases_from_json_file("YES", "NO")
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Да ✅", callback_data="confirm_support_yes")],
-        [InlineKeyboardButton(text='Нет ❌', callback_data="suport_request")]
+        [InlineKeyboardButton(text=YES, callback_data="confirm_support_yes")],
+        [InlineKeyboardButton(text=NO, callback_data="suport_request")]
     ])
     return keyboard
 
 def get_support_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру с кнопкой "тех.поддержка" """
+    TECH_SUPPORT = load_phrases_from_json_file("TECH_SUPPORT")
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Тех. поддержка ⚙️", callback_data="suport_request")],
+        [InlineKeyboardButton(text=TECH_SUPPORT, callback_data="suport_request")],
     ])
     return keyboard
 
 def get_last_product_keyboard(product_name: str) -> InlineKeyboardMarkup:
     """Создает inline-клавиатуру для возвращения к последнему товару."""
     short_product_name = ' '.join(product_name.split()[:4]) + '...'
+    BACK_TO_PRODUCT = load_phrases_from_json_file("BACK_TO_PRODUCT")
     callback_data = 'get_product'
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=f'Вернуться к товару ➡️"{short_product_name}"', callback_data=callback_data)],
+        [InlineKeyboardButton(text=f'{BACK_TO_PRODUCT}"{short_product_name}"', callback_data=callback_data)],
     ])
     return keyboard
 
@@ -49,18 +55,22 @@ def merge_keyboards(*keyboards: InlineKeyboardMarkup) -> InlineKeyboardMarkup:
 
 def get_sizes_keyboard(product_info: dict) -> InlineKeyboardMarkup:
     """ Возвращает клавиатуру с доступными размерами товара. """
+    SIZE = load_phrases_from_json_file("SIZE")
     buttons = []
     if not product_info['sizes']:
         return None
     for size in product_info['sizes']:
-        new_button = [InlineKeyboardButton(text=size+'-й 🟢', callback_data=f"size_{size}")] # Создание кнопок для каждого размера
+        new_button = [InlineKeyboardButton(text=size+SIZE, callback_data=f"size_{size}")] # Создание кнопок для каждого размера
         buttons.append(new_button) 
     size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons) # Создание инлайн-клавиатуры с этими кнопками
     return size_keyboard
 
 def get_pay_keyboard() -> InlineKeyboardMarkup:
-    """ Клавиарура "Сафонов, оплатить." """
+    """ Клавиарура "оплатить." """
+    PAY = load_phrases_from_json_file("PAY")
+    if DEBUG:
+        PAY = f"Сафонов, {PAY}"
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Сафонов, оплатить💵", callback_data="payment_request")],
+        [InlineKeyboardButton(text=PAY, callback_data="payment_request")],
     ])
     return keyboard
