@@ -4,7 +4,7 @@ from order.models import BotOrder, PersonalData
 
 @admin.register(PersonalData)
 class PersonalDataAdmin(admin.ModelAdmin):
-    list_display = ('telegram_user_id', 'name', 'surname', 'email', 'phone_number')
+    list_display = ('telegram_user_id', 'id', 'name', 'surname', 'email', 'phone_number')
     search_fields = ('telegram_user_id', 'name', 'surname', 'email', 'phone_number')
 
 @admin.register(BotOrder)
