@@ -6,3 +6,5 @@
 /products_json
 ToDo.txt
 *.log
+*.pyc
+*cpython*
