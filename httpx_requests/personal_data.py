@@ -9,9 +9,8 @@ sys.path.append(str(root_path))
 
 from config import DJANGO_URL
 
-
-async def create_personal_data(telegram_user_id: str, name: str, surname: str, address: str, email: str, phone_number: str):
-    """ Асинхронно сохраняет данные о пользователе telegram. """
+async def create_personal_data(telegram_user_id: str, name: str, surname: str, address: str, email: str, phone_number: str) -> int:
+    """ Асинхронно сохраняет данные о пользователе telegram. Возвращает id записи. """
     personal_data_url = f'{DJANGO_URL}api/personaldata/'
 
     new_personal_data = {
@@ -26,7 +25,9 @@ async def create_personal_data(telegram_user_id: str, name: str, surname: str, a
         try:
             response = await client.post(personal_data_url, json=new_personal_data)
             if response.status_code in (200, 201):
-                print("Создана новая запись PersonalData:", response.json())
+                data = response.json()
+                print("Создана новая запись PersonalData:", data)
+                return data['id']
             else:
                 print("Ошибка при создании PersonalData")
                 print("Статус код:", response.status_code)

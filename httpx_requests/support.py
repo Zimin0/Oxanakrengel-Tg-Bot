@@ -29,8 +29,7 @@ async def create_support_request(user_id: int, text: str, status: str = "in_prog
         except httpx.RequestError as e:
             print(f"Ошибка при запросе к {e.request.url!r}.")
 
-
 if __name__ == '__main__':
-    user_id = 1
+    user_id = "@Zimin0"
     text = "Это тестовый запрос в поддержку2"
     asyncio.run(create_support_request(user_id, text))

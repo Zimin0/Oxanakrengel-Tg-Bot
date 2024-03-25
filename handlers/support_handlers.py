@@ -7,6 +7,7 @@ from utils import is_support_callback, is_support_message_confirmation_callback,
 from keyboards import get_last_product_keyboard, get_confirmation_support_keyboard
 from states import SupportForm
 from json_text_for_bot import load_phrases_from_json_file
+from httpx_requests.support import create_support_request
 
 support_router = Router()
 
@@ -41,6 +42,15 @@ async def process_support_confirm_message(callback_query: types.CallbackQuery, s
         "YOUR_REQUEST_IS_SAVED",
         "YOUR_CAN_RETURN_TO_THE_LAST_PRODUCT"
         )
+    user_data = await state.get_data()
+    ### Сохраняем в БД ### 
+    user_telegram_tag = f"@{callback_query.from_user.username}"
+    text = user_data['support_message']
+    await create_support_request(
+        user_id=user_telegram_tag,
+        text=text
+        )
+    ######################
     await callback_query.message.answer(YOUR_REQUEST_IS_SAVED)
     user_data = await state.get_data()
     keyboard = get_last_product_keyboard(product_name=user_data.get('last_product_slug'))

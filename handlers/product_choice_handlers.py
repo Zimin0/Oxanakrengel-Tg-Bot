@@ -20,10 +20,17 @@ parser = WebPageParser(debug=True, folder='products_json', can_upload_from_file=
 async def process_start_command_or_callback(data: str, message: Message = None, state: FSMContext = None):
     """Логика обработки для команды /start и callback от inline-клавиатуры."""
     NO_AVAILABLE_SIZES = load_phrases_from_json_file("NO_AVAILABLE_SIZES")
-    await state.set_state(OrderClothes.show_clothes)
+
+    await state.set_state(OrderClothes.show_clothes) # Устанавливаем состояние показа карточки товара
+    
     link_in_shop = get_product_link_in_shop(product_name=data)
     filename, product_json_str = parser.run(link_in_shop, save_to_file=True)
     product_json = json.loads(product_json_str)
+
+    # сохраняем данные о товаре в стейт # 
+    await state.update_data(product_price=product_json['price']) # сохраняем ссылку на товар
+    await state.update_data(link_in_shop=product_json['url']) # сохраняем ссылку на товар
+    #####################################
 
     message_text, photoes, size_keyboard = get_product_content(product_json)
     if photoes:

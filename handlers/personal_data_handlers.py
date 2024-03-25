@@ -7,13 +7,18 @@ from keyboards import get_pay_keyboard
 from json_text_for_bot import load_phrases_from_json_file
 
 from aiogram import Router
+from httpx_requests.personal_data import create_personal_data
+from httpx_requests.bot_order import create_bot_order
 
 personal_data_router = Router()
 
 @personal_data_router.message(PersonalDataForm.wait_for_name)
 async def process_name(message: Message, state: FSMContext):
     """ Обработка имени """
-    INPUT_YOUR_NAME = load_phrases_from_json_file("INPUT_YOUR_NAME")
+    INPUT_YOUR_NAME, INPUT_YOUR_SURNAME = load_phrases_from_json_file(
+        "INPUT_YOUR_NAME",
+        "INPUT_YOUR_SURNAME"
+        )
     try:
         Validators.validate_name(message.text)
     except ValueError as e:
@@ -22,7 +27,7 @@ async def process_name(message: Message, state: FSMContext):
     
     await state.update_data(name=message.text)
     await state.set_state(PersonalDataForm.wait_for_surname)
-    await message.answer("Введите вашу фамилию✒️:")
+    await message.answer(INPUT_YOUR_SURNAME)
 
 @personal_data_router.message(PersonalDataForm.wait_for_surname)
 async def process_surname(message: Message, state: FSMContext):
@@ -92,6 +97,26 @@ async def process_delivery_address(message: Message, state: FSMContext):
     
     await state.update_data(delivery_address=message.text)
     user_data = await state.get_data()
+
+    ### Сохраняем в БД ### 
+    person_db_id = await create_personal_data(
+        telegram_user_id=f"@{message.from_user.username}",
+        name=user_data.get('name'), 
+        surname=user_data.get('surname'), 
+        address=user_data.get('delivery_address'), 
+        email=user_data.get('email'), 
+        phone_number=user_data.get('phone_number')
+        )
+    await create_bot_order(
+        personal_data=person_db_id, 
+        product_link=user_data.get('link_in_shop'), 
+        size=user_data.get('selected_size'), 
+        shipping_method=user_data.get('selected_size'), 
+        payment_method=user_data.get('selected_size'), 
+        price=user_data.get('product_price'), 
+        status='waiting_for_payment'
+        )
+    ######################
     await message.answer(
         f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
         f"Email: {user_data['email']}\nТелефон: {user_data['phone_number']}\n"
