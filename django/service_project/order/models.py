@@ -39,13 +39,13 @@ class BotOrder(models.Model):
     payment_method = models.CharField(verbose_name="Метод оплаты", max_length=50, choices=PAYMENT_METHODS)
     price = models.DecimalField(verbose_name="Цена", decimal_places=2, max_digits=10, blank=False)
     status = models.CharField(verbose_name="Статус заказа", max_length=60, choices=STATUSES)
-    creation_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
+    creation_date = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
+    update_date = models.DateTimeField(verbose_name="Дата изменения", auto_now=True)
+
+    def __str__(self):
+        return f"Заказ №{self.id}"
 
     class Meta:
         verbose_name = "Заказ в telegram боте"
         verbose_name_plural = "Заказы в telegram боте"
         ordering = ['-creation_date']
-
-    def __str__(self):
-        return f"Заказ №{self.id}"
