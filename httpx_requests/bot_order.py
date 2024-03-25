@@ -10,8 +10,8 @@ sys.path.append(str(root_path))
 from config import DJANGO_URL
 
 def create_bot_order(personal_data_id: int, product_link: str, size: int, shipping_method: str, payment_method: str, price: float, status: str):
+    """ Создает заказ с товаром. """
     bot_order_url = f'{DJANGO_URL}api/botorder/'
-
     new_bot_order = {
         "personal_data": personal_data_id,
         "product_link": product_link,
@@ -21,7 +21,6 @@ def create_bot_order(personal_data_id: int, product_link: str, size: int, shippi
         "price": price,
         "status": status
     }
-
     try:
         response = httpx.post(bot_order_url, json=new_bot_order)
         if response.status_code in (200, 201):

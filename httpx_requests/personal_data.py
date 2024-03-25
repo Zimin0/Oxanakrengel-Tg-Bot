@@ -10,6 +10,7 @@ sys.path.append(str(root_path))
 from config import DJANGO_URL
 
 def create_personal_data(telegram_user_id: str, name: str, surname: str, address: str, email: str, phone_number: str):
+    """ Сохраняет данные о пользователе telegram. """
     personal_data_url = f'{DJANGO_URL}api/personaldata/'
 
     new_personal_data = {

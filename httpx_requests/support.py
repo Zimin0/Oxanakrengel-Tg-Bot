@@ -10,6 +10,7 @@ sys.path.append(str(root_path))
 from config import DJANGO_URL
 
 def create_support_request(user_id: int, text: str, status: str = "in_progress"):
+    """ Создает запрос в тех. поддержку. """
     support_request_url = f'{DJANGO_URL}api/supportrequest/'
     new_support_request_data = {
         "user": user_id,
