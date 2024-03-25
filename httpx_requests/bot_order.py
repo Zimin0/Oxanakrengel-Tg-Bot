@@ -1,5 +1,5 @@
 import httpx
-
+import asyncio
 import sys
 from pathlib import Path
 
@@ -9,8 +9,8 @@ sys.path.append(str(root_path))
 
 from config import DJANGO_URL
 
-def create_bot_order(personal_data_id: int, product_link: str, size: int, shipping_method: str, payment_method: str, price: float, status: str):
-    """ Создает заказ с товаром. """
+async def create_bot_order(personal_data_id: int, product_link: str, size: int, shipping_method: str, payment_method: str, price: float, status: str):
+    """ Асинхронно создает заказ с товаром. """
     bot_order_url = f'{DJANGO_URL}api/botorder/'
     new_bot_order = {
         "personal_data": personal_data_id,
@@ -21,15 +21,16 @@ def create_bot_order(personal_data_id: int, product_link: str, size: int, shippi
         "price": price,
         "status": status
     }
-    try:
-        response = httpx.post(bot_order_url, json=new_bot_order)
-        if response.status_code in (200, 201):
-            print("Создана новая запись BotOrder:", response.json())
-        else:
-            print("Ошибка при создании BotOrder")
-            print("Статус код:", response.status_code)
-    except httpx.RequestError as e:
-        print(f"Ошибка при запросе к {e.request.url!r}.")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(bot_order_url, json=new_bot_order)
+            if response.status_code in (200, 201):
+                print("Создана новая запись BotOrder:", response.json())
+            else:
+                print("Ошибка при создании BotOrder")
+                print("Статус код:", response.status_code)
+        except httpx.RequestError as e:
+            print(f"Ошибка при запросе к {e.request.url!r}.")
 
 if __name__ == '__main__':
     personal_data = 1
@@ -39,4 +40,4 @@ if __name__ == '__main__':
     payment_method = 'paypal'
     price = 12000.00
     status = 'waiting_for_payment'
-    create_bot_order(personal_data, product_link, size, shipping_method, payment_method, price, status)
+    asyncio.run(create_bot_order(personal_data, product_link, size, shipping_method, payment_method, price, status))
