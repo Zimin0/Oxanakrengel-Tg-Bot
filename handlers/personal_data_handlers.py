@@ -5,6 +5,7 @@ from utils import Validators, parse_price_and_valute
 from states import PersonalDataForm
 from keyboards import get_pay_keyboard
 from json_text_for_bot import load_phrases_from_json_file
+from config import DEBUG
 
 from aiogram import Router
 from httpx_requests.personal_data import get_or_create_personal_data
@@ -105,23 +106,24 @@ async def process_delivery_address(message: Message, state: FSMContext):
     price, valute = parse_price_and_valute(user_data.get('product_price')) # парсим цену товара
 
     ### Сохраняем в БД ### 
-    person_db_id = await get_or_create_personal_data(
-        telegram_user_id=f"@{message.from_user.username}",
-        name=user_data.get('name'), 
-        surname=user_data.get('surname'), 
-        address=user_data.get('delivery_address'), 
-        email=user_data.get('email'), 
-        phone_number=user_data.get('phone_number')
-        )
-    await create_bot_order(
-        personal_data_id=person_db_id, 
-        product_link=user_data.get('link_in_shop'), 
-        size=user_data.get('selected_size'), 
-        shipping_method=user_data.get('delivery_method'), 
-        payment_method=user_data.get('payment_method'), 
-        price=price, 
-        status='waiting_for_payment'
-        )
+    if not DEBUG:
+        person_db_id = await get_or_create_personal_data(
+            telegram_user_id=f"@{message.from_user.username}",
+            name=user_data.get('name'), 
+            surname=user_data.get('surname'), 
+            address=user_data.get('delivery_address'), 
+            email=user_data.get('email'), 
+            phone_number=user_data.get('phone_number')
+            )
+        await create_bot_order(
+            personal_data_id=person_db_id, 
+            product_link=user_data.get('link_in_shop'), 
+            size=user_data.get('selected_size'), 
+            shipping_method=user_data.get('delivery_method'), 
+            payment_method=user_data.get('payment_method'), 
+            price=price, 
+            status='waiting_for_payment'
+            )
     ######################
     await message.answer(
         f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
