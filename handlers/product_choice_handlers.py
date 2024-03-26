@@ -19,7 +19,9 @@ parser = WebPageParser(debug=True, folder='products_json', can_upload_from_file=
 
 async def process_start_command_or_callback(data: str, message: Message = None, state: FSMContext = None):
     """Логика обработки для команды /start и callback от inline-клавиатуры."""
-    NO_AVAILABLE_SIZES = load_phrases_from_json_file("NO_AVAILABLE_SIZES")
+    NO_AVAILABLE_SIZES, PLEASE_WAIT = load_phrases_from_json_file("NO_AVAILABLE_SIZES", "PLEASE_WAIT")
+
+    await message.answer(PLEASE_WAIT)
 
     await state.set_state(OrderClothes.show_clothes) # Устанавливаем состояние показа карточки товара
     
