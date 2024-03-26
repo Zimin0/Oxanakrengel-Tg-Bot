@@ -54,15 +54,21 @@ def merge_keyboards(*keyboards: InlineKeyboardMarkup) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=all_buttons)
 
 def get_sizes_keyboard(product_info: dict) -> InlineKeyboardMarkup:
-    """ Возвращает клавиатуру с доступными размерами товара. """
+    """Возвращает клавиатуру с доступными размерами товара."""
     SIZE = load_phrases_from_json_file("SIZE")
     buttons = []
+    row = []
     if not product_info['sizes']:
         return None
     for size in product_info['sizes']:
-        new_button = [InlineKeyboardButton(text=size+SIZE, callback_data=f"size_{size}")] # Создание кнопок для каждого размера
-        buttons.append(new_button) 
-    size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons) # Создание инлайн-клавиатуры с этими кнопками
+        new_button = InlineKeyboardButton(text=size+SIZE, callback_data=f"size_{size}")
+        row.append(new_button)  # Добавляем кнопку в текущий ряд
+        if len(row) == 2:  # Проверяем, достиг ли ряд желаемого количества кнопок
+            buttons.append(row)  # Добавляем готовый ряд в общий список
+            row = []  # Очищаем ряд для следующих кнопок
+    if row:  # Добавляем оставшиеся кнопки, если они есть
+        buttons.append(row)
+    size_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return size_keyboard
 
 def get_pay_keyboard() -> InlineKeyboardMarkup:
