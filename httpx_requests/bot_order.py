@@ -29,6 +29,7 @@ async def create_bot_order(personal_data_id: int, product_link: str, size: int, 
             else:
                 print("Ошибка при создании BotOrder")
                 print("Статус код:", response.status_code)
+                print("Ошибка:", response.text)
         except httpx.RequestError as e:
             print(f"Ошибка при запросе к {e.request.url!r}.")
 

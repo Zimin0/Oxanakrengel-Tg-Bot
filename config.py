@@ -3,7 +3,8 @@ import os
 
 load_dotenv()
 
-DEBUG = False
+DEBUG = True
+PAYMENT_TEST_MODE = True
 
 TOKEN = os.getenv("BOT_TOKEN")
 DJANGO_URL = os.getenv("DJANGO_URL")

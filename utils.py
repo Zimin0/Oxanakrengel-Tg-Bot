@@ -72,6 +72,20 @@ def if_debug(func):
             return func(*args, **kwargs)
     return wrapper
 
+def parse_price_and_valute(price_str:str):
+    """ Парсит строку формата 123.22 рублей """
+    # valutes = ('ruble', 'dollar', 'euro')
+    result = price_str.strip().lower().split()
+    if len(result) == 2:
+        price, valute = result
+        if valute[:3] in ('руб', 'р'):
+            valute = 'ruble' 
+            return float(price), valute
+        else:
+            raise ValueError(f"Неизвестная валюта: {result}")
+    else:
+        raise ValueError(f"Не знаю, как распарсить цену: {result}")
+
 class Validators:
     """ Валидаторы для личных данных пользователя. """
 

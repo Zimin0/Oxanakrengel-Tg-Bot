@@ -6,7 +6,7 @@ from aiogram.utils.markdown import hbold
 
 from states import PaymentState
 from payment import Payment
-from config import DEBUG
+from config import PAYMENT_TEST_MODE
 from json_text_for_bot import load_phrases_from_json_file
 from utils import is_payment_callback
 
@@ -29,7 +29,7 @@ async def process_pay_callback(callback_query: types.CallbackQuery, state: FSMCo
         readable_payment_method = PAYMENT_METHODS.get(payment_method, 'Неизвестный метод')
         payment_link = payment.get_payment_link()
         
-        if DEBUG:
+        if PAYMENT_TEST_MODE:
             await callback_query.message.answer(
                 "Тестовый режим оплаты.\n"
                 f"Ваш выбранный способ оплаты: {hbold(readable_payment_method)}\n"
