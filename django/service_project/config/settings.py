@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*",]
 
 STATIC_URL = 'static/'
+STATIC_ROOT = 'static/'
 
 # Application definition
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'api',
     'order',
     'support',
+    'link_generator',
     'rest_framework'
 ]
 

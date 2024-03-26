@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Generator for @bot</title>
+    <link rel="stylesheet" href="{% static 'link_generator/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Генератор ссылок для бота @bot</h1>
+        <p>Введите ссылку на товар из магазина oxanakrengel.com</p>
+        <input type="text" id="input-link" placeholder="Введите ссылку или название товара">
+        <button id="generate-button">Генерировать</button> <!-- Добавляем кнопку генерировать -->
+        <div class="result-section">
+            <h2>Сгенерированная ссылка</h2>
+            <div class="link-copy-section">
+                <a id="generated-link">Сгенерированная ссылка</a>
+                <button id="copy-button">Копировать</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'link_generator/script.js' %}"></script>
+</body>
+</html>
