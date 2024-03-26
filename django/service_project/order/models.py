@@ -44,6 +44,9 @@ class BotOrder(models.Model):
 
     def __str__(self):
         return f"Заказ №{self.id}"
+    
+    def get_info_short(self):
+        return f"Заказ №{self.id} {self.creation_date.strftime('%d.%m.%Y %H:%M')}" 
 
     class Meta:
         verbose_name = "Заказ в telegram боте"
