@@ -50,7 +50,7 @@ async def process_pay_callback(callback_query: types.CallbackQuery, state: FSMCo
                 payload="Custom-Payload"
             )
     else:
-        await callback_query.message.answer()
+        await callback_query.message.answer(ERROR_IN_PAYMENT)
 
 @payment_router.pre_checkout_query()
 async def process_pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery):
