@@ -29,6 +29,8 @@ ALLOWED_HOSTS = ["*",]
 
 STATIC_URL = 'static/'
 STATIC_ROOT = 'static/'
+MEDIA_ROOT = f'{BASE_DIR}/media'
+MEDIA_URL = '/media/'
 
 # Application definition
 
@@ -43,7 +45,8 @@ INSTALLED_APPS = [
     'order',
     'support',
     'link_generator',
-    'rest_framework'
+    'rest_framework',
+    'phrase_json'
 ]
 
 MIDDLEWARE = [
