@@ -6,6 +6,7 @@ import config
 
 from keyboards import get_sizes_keyboard
 import re
+from json_text_for_bot import load_phrases_from_json_file
 
 def is_size_callback(callback_query: types.CallbackQuery) -> bool:
     """ Определяет, что пользователь нажал на кнопку размера. """
@@ -43,11 +44,18 @@ def get_args_from_message(message: Message) -> str:
 
 def get_product_content(product_info: dict) -> list[list, list, InlineKeyboardMarkup]:
     """ Форматирует и возвращает текстовое сообщение с информацией о товаре и клавиатуру """
+    AVAILABLE_SIZES, ABOUT_PRODUCT, PRICE_PRODUCT, PRE_PRODUCT_SYMBOL, POST_PRODUCT_SYMBOL = load_phrases_from_json_file(
+        "AVAILABLE_SIZES",
+        "ABOUT_PRODUCT",
+        "PRICE_PRODUCT",
+        "PRE_PRODUCT_SYMBOL",
+        "POST_PRODUCT_SYMBOL"
+        )
     message_text = [
-        f"✔️ <b>{product_info['title']}</b> ✔️ \n\n"
-        f"☑️ Цена: <i>{product_info['price'].lower()}</i>\n"
-        f"☑️ Доступные размеры: {', '.join([f'<b>{size}</b>' for size in product_info['sizes']])}\n"
-        f"\n<a href='{product_info['url']}'>Подробнее о товаре ⏩</a>\n\n"
+        f"{PRE_PRODUCT_SYMBOL} <b>{product_info['title']}</b> {POST_PRODUCT_SYMBOL} \n\n"
+        f"{PRICE_PRODUCT}: <i>{product_info['price'].lower()}</i>\n"
+        f"{AVAILABLE_SIZES}: {', '.join([f'<b>{size}</b>' for size in product_info['sizes']])}\n"
+        f"\n<a href='{product_info['url']}'>{ABOUT_PRODUCT}</a>\n\n"
         f"{product_info['description']}"
     ]
     size_keyboard = get_sizes_keyboard(product_info)
@@ -75,6 +83,7 @@ def if_debug(func):
 def parse_price_and_valute(price_str:str):
     """ Парсит строку формата 123.22 рублей """
     # valutes = ('ruble', 'dollar', 'euro')
+    print(f"{price_str=}")
     result = price_str.strip().lower().split()
     if len(result) == 2:
         price, valute = result

@@ -102,7 +102,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
     
     await state.update_data(delivery_address=message.text)
     user_data = await state.get_data()
-
+    print(f"{user_data=}")
     price, valute = parse_price_and_valute(user_data.get('product_price')) # парсим цену товара
 
     ### Сохраняем в БД ### 
