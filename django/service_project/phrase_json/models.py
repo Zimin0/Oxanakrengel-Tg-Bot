@@ -1,22 +1,27 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
+from django.core.files.base import ContentFile
 
 class BotPhrases(models.Model):
     phrases = models.FileField(verbose_name="Файл с фразами в формате .json", upload_to='phrases/')
     updated_at = models.DateTimeField(verbose_name="Дата изменения", auto_now=True)
 
     def save(self, *args, **kwargs):
-        # Удаление предыдущего файла
-        if self.pk:
-            try:
-                old_file = BotPhrases.objects.get(pk=self.pk).phrases
-                if old_file.name != self.phrases.name:
-                    old_file.delete(save=False)
-            except BotPhrases.DoesNotExist:
-                pass
+        # Фиксированное имя для файла
+        filename = 'phrases.json'
+        # Путь к новому файлу
+        new_path = f'phrases/{filename}'
+        # Если файл уже существует, удалить его
+        if default_storage.exists(new_path):
+            default_storage.delete(new_path)
+
+        # Если загружается новый файл, сначала сохраняем его временно
+        if self.phrases and hasattr(self.phrases.file, 'read'):
+            content = self.phrases.file.read()
+
+            # Создаем новый ContentFile с фиксированным именем
+            self.phrases.save(name=filename, content=ContentFile(content), save=False)
+
         super(BotPhrases, self).save(*args, **kwargs)
 
     def __str__(self):
