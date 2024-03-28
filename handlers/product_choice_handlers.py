@@ -37,8 +37,8 @@ async def process_start_command_or_callback(data: str, message: Message = None, 
     message_text, photoes, size_keyboard = get_product_content(product_json)
     if photoes:
         await message.answer_media_group(photoes)
-    if not size_keyboard:
-        message_text.append(NO_AVAILABLE_SIZES)
+    if size_keyboard is None:
+        message_text += f"{NO_AVAILABLE_SIZES}\n"
     await message.answer(message_text, parse_mode='HTML', reply_markup=size_keyboard)
     await state.set_state(OrderClothes.choose_size)
 
