@@ -31,6 +31,10 @@ class BotPhrases(models.Model):
                 raise ValueError("Файл phrases.json отсутствует.")
 
         super(BotPhrases, self).save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name = "Файл фраз бота"
+        verbose_name_plural = "Файлы фраз бота"
 
     def __str__(self):
         return f"Фразы бота | {self.updated_at.strftime('%Y-%m-%d %H:%M:%S')}"
