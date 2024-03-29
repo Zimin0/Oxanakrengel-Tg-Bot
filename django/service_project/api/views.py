@@ -14,5 +14,5 @@ class BotOrderViewSet(viewsets.ModelViewSet):
     serializer_class = BotOrderSerializer
 
 class SupportRequestViewSet(viewsets.ModelViewSet):
-    queryset = BotOrder.objects.all()
-    serializer_class = SupportRequestSerializer 
+    queryset = SupportRequest.objects.all()
+    serializer_class = SupportRequestSerializer

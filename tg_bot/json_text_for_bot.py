@@ -19,3 +19,6 @@ def load_phrases_from_json_file(*slugs):
         raise FileNotFoundError(f"Файл {file_path} не найден.")
     except json.JSONDecodeError:
         raise ValueError("Ошибка при разборе JSON файла.")
+
+if __name__ == '__main__':
+    print(load_phrases_from_json_file('PLEASE_WAIT'))
