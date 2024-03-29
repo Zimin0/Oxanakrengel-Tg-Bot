@@ -11,16 +11,24 @@ class BotPhrases(models.Model):
         filename = 'phrases.json'
         # Путь к новому файлу
         new_path = f'phrases/{filename}'
-        # Если файл уже существует, удалить его
-        if default_storage.exists(new_path):
-            default_storage.delete(new_path)
 
-        # Если загружается новый файл, сначала сохраняем его временно
-        if self.phrases and hasattr(self.phrases.file, 'read'):
-            content = self.phrases.file.read()
-
-            # Создаем новый ContentFile с фиксированным именем
-            self.phrases.save(name=filename, content=ContentFile(content), save=False)
+        # Удалить старый файл, если загружен новый
+        if self.phrases:
+            # Полный путь к старому файлу
+            old_path = self.phrases.path
+            # Проверяем, совпадает ли путь нового файла со старым
+            if not old_path.endswith(filename):
+                # Если файл уже существует, удаляем его
+                if default_storage.exists(new_path):
+                    default_storage.delete(new_path)
+                # Считываем содержимое нового файла
+                content = self.phrases.read()
+                # Заменяем файл
+                self.phrases.save(name=filename, content=ContentFile(content), save=False)
+        else:
+            # Если файл не прикреплен, не делаем ничего
+            if not default_storage.exists(new_path):
+                raise ValueError("Файл phrases.json отсутствует.")
 
         super(BotPhrases, self).save(*args, **kwargs)
 
