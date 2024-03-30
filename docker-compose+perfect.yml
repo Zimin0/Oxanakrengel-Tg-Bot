@@ -1,0 +1,47 @@
+version: '3'
+
+# подключаем тома-хранилаща
+volumes:
+  pgdata:
+    driver: local
+
+services:
+  nginx:
+    restart: always # при падении nginx будет стараться подняться
+    image: nginx:latest # свежий nginx
+    expose: 
+      - 8080 # слушает внутренний 8000 порт
+    ports: 
+      - "80:8080" # сопоставляет внешний 80 порт с внутренним портом контейнера - 8080
+    volumes: # монтируем директории, в которых лежит статика + логи + конфиг
+      - ./django/service_project/static:/srv/www/django/service_project/static
+      - ./django/service_project/media:/srv/www/django/service_project/media
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - python
+  
+  python:
+    restart: always
+    build: 
+      context: .
+      dockerfile: docker/python/Dockerfile
+    volumes: 
+        - ./doctor-site:/srv/www/doctor-site
+    expose:
+        - 8000
+    ports: 
+      - 8000:8000 
+    command: "gunicorn -c gunicorn.py config.wsgi" # запускаем gunicorn
+  
+  postgres: 
+    image: postgres:12
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: doctor
+      POSTGRES_PASSWORD: 3gGG*2n4
+      POSTGRES_DB: doctor_db
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  
