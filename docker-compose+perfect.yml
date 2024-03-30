@@ -3,7 +3,7 @@ version: '3'
 # подключаем тома-хранилаща
 volumes:
   pgdata:
-    driver: local
+  nginx_logs:
 
 services:
   nginx:
@@ -13,14 +13,15 @@ services:
       - 8080 # слушает внутренний 8000 порт
     ports: 
       - "80:8080" # сопоставляет внешний 80 порт с внутренним портом контейнера - 8080
-    volumes: # монтируем директории, в которых лежит статика + логи + конфиг
-      - ./django/service_project/static:/srv/www/django/service_project/static
-      - ./django/service_project/media:/srv/www/django/service_project/media
-      - ./docker/nginx:/etc/nginx/conf.d
+    volumes:
+      - ./django/service_project/static:/app/service_project/static
+      - ./django/service_project/media:/app/service_project/media
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - nginx_logs:/var/log/nginx
     depends_on:
-      - python
+      - django
   
-  python:
+  django:
     restart: always
     build: 
       context: .
@@ -37,10 +38,9 @@ services:
     image: postgres:12
     ports:
       - 5432:5432
+    env_file:
+    - ./django/service_project/.env
     environment:
-      POSTGRES_USER: doctor
-      POSTGRES_PASSWORD: 3gGG*2n4
-      POSTGRES_DB: doctor_db
       PGDATA: /var/lib/postgresql/data
     volumes:
       - pgdata:/var/lib/postgresql/data
