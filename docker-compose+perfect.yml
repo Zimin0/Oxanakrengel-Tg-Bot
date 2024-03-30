@@ -6,13 +6,14 @@ volumes:
   nginx_logs:
 
 services:
+
   nginx:
-    restart: always # при падении nginx будет стараться подняться
-    image: nginx:latest # свежий nginx
+    restart: always
+    image: nginx:latest
     expose: 
-      - 8080 # слушает внутренний 8000 порт
+      - 80
     ports: 
-      - "80:8080" # сопоставляет внешний 80 порт с внутренним портом контейнера - 8080
+      - "80:80" 
     volumes:
       - ./django/service_project/static:/app/service_project/static
       - ./django/service_project/media:/app/service_project/media
@@ -22,18 +23,18 @@ services:
       - django
   
   django:
-    restart: always
-    build: 
-      context: .
-      dockerfile: docker/python/Dockerfile
-    volumes: 
-        - ./doctor-site:/srv/www/doctor-site
+    build:
+      context: ./django/service_project # как WORKDIR
+      dockerfile: Dockerfile
+    entrypoint: /app/initialize_db.sh
+    command: gunicorn --config gunicorn.py config.wsgi:application
+    volumes:
+      - ./django/service_project:/app
     expose:
-        - 8000
-    ports: 
-      - 8000:8000 
-    command: "gunicorn -c gunicorn.py config.wsgi" # запускаем gunicorn
-  
+      - 8000
+    depends_on:
+      - postgres
+
   postgres: 
     image: postgres:12
     ports:
@@ -44,4 +45,12 @@ services:
       PGDATA: /var/lib/postgresql/data
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  tg_bot:
+    build: ./tg_bot
+    command: python main.py
+    volumes:
+      - ./tg_bot:/bot
+    depends_on:
+      - django
   
