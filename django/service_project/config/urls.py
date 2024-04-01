@@ -7,7 +7,7 @@ urlpatterns = [
     path('link/', include('link_generator.urls')),
     path('api/', include('api.urls')),
     path('api/', include('phrase_json.urls')),
-    path('', admin.site.urls),
+    path('admin/', admin.site.urls),
 ]
 
 if settings.DEBUG:
