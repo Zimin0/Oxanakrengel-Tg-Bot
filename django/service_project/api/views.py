@@ -15,4 +15,4 @@ class BotOrderViewSet(viewsets.ModelViewSet):
 
 class SupportRequestViewSet(viewsets.ModelViewSet):
     queryset = SupportRequest.objects.all()
-    serializer_class = SupportRequestSerializer
+    serializer_class = SupportRequestSerializer 

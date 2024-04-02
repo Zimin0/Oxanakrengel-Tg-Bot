@@ -12,26 +12,29 @@ class BotPhrases(models.Model):
         # Путь к новому файлу
         new_path = f'phrases/{filename}'
 
-        # Удалить старый файл, если загружен новый
-        if self.phrases:
-            # Полный путь к старому файлу
-            old_path = self.phrases.path
-            # Проверяем, совпадает ли путь нового файла со старым
-            if not old_path.endswith(filename):
-                # Если файл уже существует, удаляем его
-                if default_storage.exists(new_path):
-                    default_storage.delete(new_path)
-                # Считываем содержимое нового файла
-                content = self.phrases.read()
-                # Заменяем файл
-                self.phrases.save(name=filename, content=ContentFile(content), save=False)
-        else:
-            # Если файл не прикреплен, не делаем ничего
-            if not default_storage.exists(new_path):
-                raise ValueError("Файл phrases.json отсутствует.")
+        # Удалить предыдущий файл, если он существует
+        if default_storage.exists(new_path):
+            default_storage.delete(new_path)
 
+        # Если прикреплен новый файл
+        if self.phrases:
+            # Считываем содержимое нового файла
+            content = self.phrases.read()
+            # Создаем новый ContentFile с фиксированным именем
+            self.phrases.save(name=filename, content=ContentFile(content), save=False)
+        else:
+            # Если новый файл не был прикреплен, проверяем существование записи
+            if not self.pk and BotPhrases.objects.exists():
+                # Используем существующий экземпляр
+                existing_instance = BotPhrases.objects.first()
+                # Копируем файл из существующей записи, если он есть
+                if existing_instance.phrases:
+                    content = existing_instance.phrases.read()
+                    self.phrases.save(name=filename, content=ContentFile(content), save=False)
+
+        # Вызываем родительский метод save
         super(BotPhrases, self).save(*args, **kwargs)
-    
+
     class Meta:
         verbose_name = "Файл фраз бота"
         verbose_name_plural = "Файлы фраз бота"
