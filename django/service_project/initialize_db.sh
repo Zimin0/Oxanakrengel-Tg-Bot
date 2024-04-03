@@ -1,10 +1,10 @@
 #!/bin/sh
 
-#!/bin/sh
-
 # Загрузка переменных окружения из файла .env в текущий shell
 if [ -f .env ]; then
-  export $(cat .env | xargs)
+  set -a  # Автоматически экспортировать все переменные
+  . ./.env
+  set +a  # Выключить автоэкспорт
 fi
 
 echo "Ожидание Постгрес."
@@ -16,9 +16,9 @@ done
 
 >&2 echo "Пострес работает."
 
-
 # Выход при любой ошибке
 set -e
+
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
