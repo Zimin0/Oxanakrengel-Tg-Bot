@@ -26,11 +26,13 @@ services:
     build:
       context: ./django/service_project # как WORKDIR
       dockerfile: Dockerfile
-    command: gunicorn --config gunicorn.py config.wsgi:application
     volumes:
       - ./django/service_project:/app
     expose:
       - 8000
+    ports: 
+      - 8000:8000 
+    command: gunicorn --config gunicorn.py config.wsgi:application
     depends_on:
       - postgres
 
