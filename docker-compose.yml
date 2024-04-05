@@ -10,7 +10,6 @@ services:
   nginx:
     restart: always
     image: nginx:latest
-    command: /bin/sh -c "sleep 10 && nginx -g 'daemon off;'"
     expose: 
       - 80
     ports: 

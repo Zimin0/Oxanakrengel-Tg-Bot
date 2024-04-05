@@ -14,4 +14,4 @@ env = {
     'DJANGO_SETTINGS_MODULE': 'config.settings'
 }
 reload = True
-name = 'config'
+name = 'service_project'
