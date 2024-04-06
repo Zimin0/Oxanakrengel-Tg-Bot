@@ -3,7 +3,7 @@ version: '3'
 # подключаем тома-хранилаща
 volumes:
   pgdata:
-  nginx_logs:
+  nginx_logs: # том для хранения логов
 
 services:
 
@@ -17,6 +17,7 @@ services:
     volumes:
       - ./django/service_project/static:/app/service_project/static
       - ./django/service_project/media:/app/service_project/media
+      - nginx_logs:/var/log/nginx # Монтируем том для логов nginx
     depends_on:
       - django
   
