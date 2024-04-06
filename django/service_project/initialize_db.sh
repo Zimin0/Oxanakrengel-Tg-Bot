@@ -2,23 +2,30 @@
 
 # Загрузка переменных окружения из файла .env в текущий shell
 if [ -f .env ]; then
-  set -a  # Автоматически экспортировать все переменные
-  . ./.env
-  set +a  # Выключить автоэкспорт
+  while read -r line; do
+    if echo "$line" | grep -F = &>/dev/null; then
+      varname=$(echo "$line" | cut -d '=' -f 1)
+      export "$varname"=$(echo "$line" | cut -d '=' -f 2-)
+    fi
+  done < .env
 fi
 
-echo "Ожидание Постгрес."
+# Проверка использования базы данных PostgreSQL
+if [ "$DATABASE" = "postgres" ]; then
+  echo "Ожидание Постгрес."
 
-until PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$HOST_DB" -p "$PORT_DB" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q'; do
-  >&2 echo "Постгрес недоступен..."
-  sleep 1
-done
+  # Ожидание доступности PostgreSQL
+  until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
+    sleep 0.1
+  done
 
->&2 echo "Пострес работает."
+  echo "Постгрес работает."
+fi
 
 # Выход при любой ошибке
 set -e
 
+# Выполнение миграций Django
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
