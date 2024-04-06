@@ -3,3 +3,4 @@ WORKDIR /django_project
 COPY . /django_project
 RUN pip install -r requirements.txt --no-input
 RUN python manage.py collectstatic --no-input
+RUN initialize_db.sh
