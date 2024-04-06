@@ -4,8 +4,6 @@ import os
 
 load_dotenv()
 
-SECRET_KEY = os.getenv('SECRET_KEY')
-
 bind = '0.0.0.0:' + os.getenv('PORT', '8000')
 max_requests = 1000
 worker_class = 'gevent'
@@ -15,3 +13,7 @@ env = {
 }
 reload = True
 name = 'service_project'
+
+accesslog = '/django_project/access.log'
+errorlog = '/django_project/error.log'
+loglevel = 'info' 
