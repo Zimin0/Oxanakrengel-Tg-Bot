@@ -8,16 +8,15 @@ volumes:
 services:
 
   nginx:
+    build: ./nginx # Указываем путь к папке с Dockerfile
     restart: always
-    image: nginx:latest
     expose: 
       - 80
-    ports: 
-      - "80:80" 
+    ports:
+      - "80:80"
     volumes:
       - ./django/service_project/static:/app/service_project/static
       - ./django/service_project/media:/app/service_project/media
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - nginx_logs:/var/log/nginx
     depends_on:
       - django
@@ -26,12 +25,13 @@ services:
     build:
       context: ./django/service_project # как WORKDIR
       dockerfile: Dockerfile
-    entrypoint: /app/initialize_db.sh
-    command: gunicorn --config gunicorn.py config.wsgi:application
     volumes:
       - ./django/service_project:/app
     expose:
       - 8000
+    ports: 
+      - 8000:8000 
+    command: gunicorn --config gunicorn.py config.wsgi:application
     depends_on:
       - postgres
 
