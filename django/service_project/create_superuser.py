@@ -15,7 +15,9 @@ email = os.getenv('DJANGO_SUPERUSER_EMAIL')
 password = os.getenv('DJANGO_SUPERUSER_PASSWORD')
 
 if not all([username, email, password]):
-    [print(f"Перменная среды {var} не установлена!" for var in [username, email, password])]
+    for var in ["username", "email", "password"]:
+        if not locals()[var]:
+            print(f"Переменная среды {var} не установлена!")
 else:
     if not User.objects.filter(username=username).exists():
         try:
