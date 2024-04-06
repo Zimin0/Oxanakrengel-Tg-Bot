@@ -10,17 +10,13 @@ if [ -f .env ]; then
   done < .env
 fi
 
-# Проверка использования базы данных PostgreSQL
-if [ "$DATABASE" = "postgres" ]; then
-  echo "Ожидание Постгрес."
+# Ожидание доступности PostgreSQL
+until nc -z "$HOST_DB" "$PORT_DB"; do
+  sleep 0.1
+done
 
-  # Ожидание доступности PostgreSQL
-  until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
-    sleep 0.1
-  done
+echo "Постгрес работает."
 
-  echo "Постгрес работает."
-fi
 
 # Выход при любой ошибке
 set -e
