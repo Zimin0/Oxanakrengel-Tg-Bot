@@ -22,9 +22,7 @@ services:
       - django
   
   django:
-    build:
-      context: ./django/service_project # как WORKDIR
-      dockerfile: Dockerfile
+    build: ./django/service_project
     volumes:
       - ./django/service_project:/django_project
     expose:
