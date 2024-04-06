@@ -15,8 +15,8 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./django/service_project/static:/app/service_project/static
-      - ./django/service_project/media:/app/service_project/media
+      - ./django/service_project/static:/django_project/static
+      - ./django/service_project/media:/django_project/media
       - nginx_logs:/var/log/nginx # Монтируем том для логов nginx
     depends_on:
       - django
@@ -26,7 +26,7 @@ services:
       context: ./django/service_project # как WORKDIR
       dockerfile: Dockerfile
     volumes:
-      - ./django/service_project:/app
+      - ./django/service_project:/django_project
     expose:
       - 8000
     ports: 
