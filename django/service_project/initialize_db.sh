@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export DJANGO_SETTINGS_MODULE=your_project_name.settings
+
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
