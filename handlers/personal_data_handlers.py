@@ -114,7 +114,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
             email=user_data.get('email'), 
             phone_number=user_data.get('phone_number')
             )
-        await create_bot_order(
+        order_id_id_db = await create_bot_order(
             personal_data_id=person_db_id, 
             product_link=user_data.get('link_in_shop'), 
             size=user_data.get('selected_size'), 
@@ -123,6 +123,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
             price=price, 
             status='waiting_for_payment'
             )
+        state.update_data(order_id_id_db=order_id_id_db) # сохраняем django_id заказа в состояние.
     ######################
     await message.answer(
         f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
