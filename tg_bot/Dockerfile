@@ -1,7 +1,7 @@
 FROM python:3.11.3
 WORKDIR /bot
 COPY . /bot
-RUN apt-get update && apt-get install -y cron
+RUN apt-get update && apt-get install -y cron && apt-get install -y systemctl 
 RUN pip install -r requirements.txt
+RUN systemctl start cron
 RUN crontab cron_file
-RUN bash setup_cron.sh
