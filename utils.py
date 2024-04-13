@@ -131,6 +131,6 @@ class Validators:
     def validate_support_message(message):
         """ Валидация сообщения в поддержку """
         message = message.strip()
-        if len(message.split()) < 10 or len(message) < 40:
-            raise ValueError("Запрос в поддержку должен содержать минимум 10 слов и 40 символов.")
+        if len(message.split()) < 3 or len(message) < 15:
+            raise ValueError("Запрос в поддержку должен содержать минимум 3 слова и 15 символов.")
         

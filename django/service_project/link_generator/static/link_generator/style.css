@@ -55,3 +55,17 @@ input[type="text"] {
     cursor: pointer;
     margin-left: 10px; /* Добавляем отступ слева, чтобы отделить кнопку от поля ввода */
 }
+
+#copy-button, #go-to-bot-button {
+    padding: 10px; /* Устанавливаем одинаковый внутренний отступ для обеих кнопок */
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
+#generate-button {
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 10px; /* Добавляем отступ слева, чтобы отделить кнопку от поля ввода */
+}

@@ -12,24 +12,27 @@ document.getElementById('generate-button').addEventListener('click', function() 
 
     try {
         const generatedLink = getBotLinkWithArg(inputLink);
-        document.getElementById('generated-link').href = generatedLink;
         document.getElementById('generated-link').textContent = generatedLink;
         document.getElementById('copy-button').style.display = 'inline-block'; // Показать кнопку копирования
+        document.getElementById('go-to-bot-button').style.display = 'inline-block'; // Показать кнопку перехода в бота
     } catch (error) {
         alert(error.message);
     }
 });
 
-
 document.getElementById('copy-button').addEventListener('click', function() {
-    const link = document.getElementById('generated-link').href;
-    navigator.clipboard.writeText(link).then(() => {
-        const button = document.getElementById('copy-button');
-        button.textContent = 'Скопировано!';
-        setTimeout(() => button.textContent = 'Копировать', 2000); // Сбросить текст кнопки через 2 секунды
-    });
+    const link = document.getElementById('generated-link').textContent;
+    navigator.clipboard.writeText(link)    
+    const button = document.getElementById('copy-button');
+    button.textContent = 'Скопировано!';
+    setTimeout(() => button.textContent = 'Копировать', 1500); // Сбросить текст кнопки через 2 секунды
 });
 
+document.getElementById('go-to-bot-button').addEventListener('click', function() {
+    // нажатие на кнопку должно перебрасывать пользователя на другую страницу
+    const botLink = document.getElementById('generated-link').textContent;
+    window.location.href = botLink;
+});
 
 const MAX_TELEGRAM_ARG_LENGTH = 64;
 const BOT_NAME = 'OxanaKrengelShopBot';
@@ -42,4 +45,3 @@ function getBotLinkWithArg(productUrl) {
     const botLink = `https://t.me/${BOT_NAME}?start=${productName}`;
     return botLink;
 }
-
