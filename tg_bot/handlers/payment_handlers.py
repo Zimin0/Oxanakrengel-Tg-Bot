@@ -5,13 +5,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.markdown import hbold
 
 from states import PaymentState
-from payment import Payment
+from payment import Custom_Payment
 from config import PAYMENT_TEST_MODE
 from json_text_for_bot import load_phrases_from_json_file
-from utils import is_payment_callback
+from utils import is_payment_callback, parse_price_and_valute
 
 payment_router = Router() 
-payment = Payment()
+payment = Custom_Payment()
 
 @payment_router.callback_query(is_payment_callback)
 async def process_pay_callback(callback_query: types.CallbackQuery, state: FSMContext):
@@ -27,9 +27,15 @@ async def process_pay_callback(callback_query: types.CallbackQuery, state: FSMCo
     payment_method = user_data.get('payment_method')
     if payment_method:
         readable_payment_method = PAYMENT_METHODS.get(payment_method, 'Неизвестный метод')
-        payment_link = payment.get_payment_link()
-        
+        order_db_id = user_data.get('order_db_id')
+        print(f"{order_db_id=}")
+        product_price, valute = parse_price_and_valute(user_data.get('product_price')) 
         if PAYMENT_TEST_MODE:
+            order_id, payment_link = payment.create_yookassa_order(
+                price=product_price,
+                order_django_id=order_db_id,
+                test_mode=True
+            )
             await callback_query.message.answer(
                 "Тестовый режим оплаты.\n"
                 f"Ваш выбранный способ оплаты: {hbold(readable_payment_method)}\n"

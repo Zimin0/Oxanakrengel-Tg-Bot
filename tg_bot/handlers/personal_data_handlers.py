@@ -5,7 +5,7 @@ from utils import Validators, parse_price_and_valute
 from states import PersonalDataForm
 from keyboards import get_pay_keyboard
 from json_text_for_bot import load_phrases_from_json_file
-from config import DEBUG
+from config import DEBUG, PAYMENT_TEST_MODE
 
 from aiogram import Router
 from httpx_requests.personal_data import get_or_create_personal_data
@@ -114,15 +114,17 @@ async def process_delivery_address(message: Message, state: FSMContext):
             email=user_data.get('email'), 
             phone_number=user_data.get('phone_number')
             )
-        await create_bot_order(
+        order_db_id = await create_bot_order(
             personal_data_id=person_db_id, 
             product_link=user_data.get('link_in_shop'), 
             size=user_data.get('selected_size'), 
             shipping_method=user_data.get('delivery_method'), 
             payment_method=user_data.get('payment_method'), 
             price=price, 
-            status='waiting_for_payment'
+            status='waiting_for_payment',
+            is_real_order=(not PAYMENT_TEST_MODE)
             )
+        await state.update_data(order_db_id=order_db_id) # сохраняем django_id заказа в состояние.
     ######################
     await message.answer(
         f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
