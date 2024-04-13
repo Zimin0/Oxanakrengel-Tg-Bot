@@ -22,7 +22,7 @@ document.getElementById('generate-button').addEventListener('click', function() 
 
 document.getElementById('copy-button').addEventListener('click', function() {
     const link = document.getElementById('generated-link').textContent;
-    navigator.clipboard.writeText(link)    
+    unsecuredCopyToClipboard(link); // Вызываем функцию копирования из КОД2
     const button = document.getElementById('copy-button');
     button.textContent = 'Скопировано!';
     setTimeout(() => button.textContent = 'Копировать', 1500); // Сбросить текст кнопки через 2 секунды
@@ -44,4 +44,18 @@ function getBotLinkWithArg(productUrl) {
     }
     const botLink = `https://t.me/${BOT_NAME}?start=${productName}`;
     return botLink;
+}
+
+function unsecuredCopyToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+  } catch (err) {
+    console.error('Unable to copy to clipboard', err);
+  }
+  document.body.removeChild(textArea);
 }
