@@ -1,0 +1,2 @@
+* * * * * rm -rf /bot/products_json/*
+* * * * * /usr/local/bin/python /bot/httpx_requests/json_file.py

@@ -1,8 +1,9 @@
 #!/bin/bash
 crontab -l > mycron
 # Добавить задачу cron для очистки директории
-echo "0 0 * * * /bin/bash /bot/clear_products_json.sh" >> mycron
+echo "* * * * * rm -rf /bot/products_json/*" >> mycron
 # Добавить задачу cron для запуска скрипта Python каждую минуту
-echo "* * * * * /bin/bash /bot/upload_phrases_for_cron.sh" >> mycron
+echo "* * * * * /usr/local/bin/python /bot/httpx_requests/json_file.py" >> mycron
+echo ""
 crontab mycron
 rm mycron
