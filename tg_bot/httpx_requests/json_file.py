@@ -1,7 +1,6 @@
 import httpx
 import asyncio
 import sys
-import json
 
 # Необходимо добавить импорт для Path, если он не был добавлен ранее
 from pathlib import Path
