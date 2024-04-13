@@ -7,6 +7,7 @@ urlpatterns = [
     path('link/', include('link_generator.urls')),
     path('api/', include('api.urls')),
     path('api/', include('phrase_json.urls')),
+    path('order/', include('order.urls')),
     path('admin/', admin.site.urls),
 ]
 

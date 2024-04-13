@@ -27,12 +27,13 @@ async def process_pay_callback(callback_query: types.CallbackQuery, state: FSMCo
     payment_method = user_data.get('payment_method')
     if payment_method:
         readable_payment_method = PAYMENT_METHODS.get(payment_method, 'Неизвестный метод')
-        order_id_id_db = user_data.get('order_id_id_db')
+        order_db_id = user_data.get('order_db_id')
+        print(f"{order_db_id=}")
         product_price, valute = parse_price_and_valute(user_data.get('product_price')) 
         if PAYMENT_TEST_MODE:
             order_id, payment_link = payment.create_yookassa_order(
                 price=product_price,
-                order_django_id=order_id_id_db,
+                order_django_id=order_db_id,
                 test_mode=True
             )
             await callback_query.message.answer(

@@ -53,12 +53,14 @@ class Custom_Payment():
                 "return_url": Custom_Payment.__create_return_link(order_django_id)
             },
             "capture": True,
+            "metadata": {
+                "order_django_id":order_django_id
+            }
             
         }, uuid.uuid4())
         return payment.id, payment.confirmation.confirmation_url
 
-
-
 if __name__ == "__main__":
     payment = Custom_Payment()
-    print(payment.create_yookassa_order(100.0, order_django_id=10, test_mode=True))
+    print(payment.create_yookassa_order(1.0, order_django_id=10, test_mode=True))
+

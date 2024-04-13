@@ -9,7 +9,7 @@ sys.path.append(str(root_path))
 
 from config import DJANGO_URL
 
-async def create_bot_order(personal_data_id: int, product_link: str, size: int, shipping_method: str, payment_method: str, price: float, status: str) -> str:
+async def create_bot_order(personal_data_id: int, product_link: str, size: int, shipping_method: str, payment_method: str, price: float, status: str, is_real_order:bool) -> str:
     """ Асинхронно создает заказ с товаром. Воззвращает id из базы данных."""
     bot_order_url = f'{DJANGO_URL}api/botorder/'
     new_bot_order = {
@@ -19,21 +19,23 @@ async def create_bot_order(personal_data_id: int, product_link: str, size: int, 
         "shipping_method": shipping_method,
         "payment_method": payment_method,
         "price": price,
-        "status": status
+        "status": status,
+        "is_real_order": is_real_order
     }
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(bot_order_url, json=new_bot_order)
             if response.status_code in (200, 201):
-                response = response.json()
+                response_json = response.json()
                 print("Создана новая запись BotOrder:", response)
+                return str(response_json['id'])
             else:
                 print("Ошибка при создании BotOrder")
                 print("Статус код:", response.status_code)
                 print("Ошибка:", response.text)
         except httpx.RequestError as e:
             print(f"Ошибка при запросе к {e.request.url!r}.")
-    return str(response['id'])
+    return None
 
 if __name__ == '__main__':
     personal_data = 1
