@@ -44,7 +44,7 @@ services:
 
   tg_bot:
     build: ./tg_bot
-    command: python main.py
+    command: python main.py && systemctl start cron
     volumes:
       - ./tg_bot:/bot
     depends_on:
