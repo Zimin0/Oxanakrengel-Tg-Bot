@@ -72,11 +72,20 @@ def get_sizes_keyboard(product_info: dict) -> InlineKeyboardMarkup:
     return size_keyboard
 
 def get_pay_keyboard() -> InlineKeyboardMarkup:
-    """ Клавиарура "оплатить." """
-    PAY = load_phrases_from_json_file("PAY")
+    """ Клавиарура "Перейти к оплате." """
+    GO_PAY = load_phrases_from_json_file("GO_PAY")
     if DEBUG:
-        PAY = f"Сафонов, {PAY}"
+        PAY = f"Сафонов, {GO_PAY}"
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=PAY, callback_data="payment_request")],
+        [InlineKeyboardButton(text=GO_PAY, callback_data="payment_request")],
+    ])
+    return keyboard
+
+def get_final_pay_keyboard(payment_url) -> InlineKeyboardMarkup:
+    """ Клавиатура "Оплатить" и "Я оплатил" """
+    PAY, CHECK_PAYMENT = load_phrases_from_json_file("PAY", "CHECK_PAYMENT")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=PAY, url=payment_url)],
+        [InlineKeyboardButton(text=CHECK_PAYMENT, callback_data="check_payment_request")], 
     ])
     return keyboard

@@ -26,12 +26,16 @@ def is_support_callback(callback_query: types.CallbackQuery) -> bool:
     """ Проверяет, является ли callback_query нажатием кнопки "техподдержка". """
     return callback_query.data.startswith('suport_request')
 
+def is_check_payment_callback(callback_query: types.CallbackQuery) -> bool:
+    """ Проверяет, является ли callback_query нажатием кнопки "я оплатил". """
+    return callback_query.data.startswith('check_payment_')
+
 def is_support_message_confirmation_callback(callback_query: types.CallbackQuery) -> bool:
     """ Проверяет, является ли callback_query нажатием кнопки "да" во время запроса в техподдержку. """
     return callback_query.data.startswith('confirm_support_yes')
 
 def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
-    """ Проверяет, является ли callback_query нажатием кнопки "оплатить". """
+    """ Проверяет, является ли callback_query нажатием кнопки "Перейти к оплате". """
     return callback_query.data.startswith('payment_')
 
 def get_args_from_message(message: Message) -> str:
