@@ -13,12 +13,7 @@ Configuration.secret_key = os.getenv('YOOKASSA_SECRET_KEY')
 
 
 class Custom_Payment():
-    return_url = 'https://t.me/OxanaKrengelShopBot?start='
-    
-    @staticmethod
-    def __create_return_link(order_django_id:int):
-        """ * order_django_id - id из базы данных django. """
-        return Custom_Payment.return_url + str(order_django_id)
+    return_url = 'https://t.me/OxanaKrengelShopBot'
     
     @staticmethod
     def __create_date() -> str:
@@ -50,7 +45,7 @@ class Custom_Payment():
             "created_at": Custom_Payment.__create_date(),
             "confirmation": {
                 "type": "redirect",
-                "return_url": Custom_Payment.__create_return_link(order_django_id)
+                "return_url": Custom_Payment.return_url
             },
             "capture": True,
             "metadata": {

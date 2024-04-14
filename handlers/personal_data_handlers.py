@@ -127,7 +127,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
         await state.update_data(order_db_id=order_db_id) # сохраняем django_id заказа в состояние.
     ######################
     await message.answer(
-        f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
-        f"Email: {user_data['email']}\nТелефон: {user_data['phone_number']}\n"
-        f"Адрес доставки: {user_data['delivery_address']}\nВаши данные успешно сохранены, мы скоро свяжемся с вами!"
+        f"Спасибо, ваши <b>данные</b>:\n<b>🔹 Имя</b>: {user_data['name']}\n<b>🔹 Фамилия</b>: {user_data['surname']}\n"
+        f"<b>🔹 Email</b>: {user_data['email']}\n<b>🔹 Телефон</b>: {user_data['phone_number']}\n"
+        f"<b>🔹 Адрес доставки</b>: {user_data['delivery_address']}\nВаши данные <b>успешно сохранены</b>, мы скоро свяжемся с вами!"
     , reply_markup=get_pay_keyboard())
