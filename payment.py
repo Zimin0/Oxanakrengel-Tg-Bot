@@ -2,7 +2,6 @@ import datetime
 import pytz
 from yookassa import Configuration, Payment
 import uuid
-from decimal import Decimal 
 from dotenv import load_dotenv
 import os
 

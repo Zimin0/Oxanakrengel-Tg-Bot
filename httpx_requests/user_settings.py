@@ -26,7 +26,7 @@ async def get_user_setting(setting_slug:str, default=None) -> dict:
             else:
                 print("Ошибка при получении настройки.")
         except httpx.RequestError as e:
-            print(f"Ошибка при запросе к {e.request.url!r}.")
+            print(f"Ошибка при запросе к {e}.")
     return default
 
 if __name__ == "__main__":
