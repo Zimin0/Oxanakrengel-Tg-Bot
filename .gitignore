@@ -1,3 +1,11 @@
 .env
-products_json
-__pycache__/
+/pyenv
+*.json
+/trash
+/__pycache__
+/products_json
+ToDo.txt
+*.log
+*.pyc
+*cpython*
+ToDo.txt
