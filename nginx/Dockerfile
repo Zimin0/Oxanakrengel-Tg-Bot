@@ -1,23 +1,15 @@
-# Используем официальный базовый образ Ubuntu
-FROM ubuntu:latest
+# Pull the minimal Ubuntu image
+FROM ubuntu
 
-# Установка Nginx
-RUN apt-get update && \
-    apt-get install -y nginx && \
-    apt-get install -y nano
+# Install Nginx
+RUN apt-get -y update && apt-get -y install nginx
+RUN apt-get -y update && apt-get -y upgrade && apt-get -y install nano
 
-# Установка software-properties-common и добавление репозитория Certbot
-RUN apt-get install -y software-properties-common && \
-    add-apt-repository universe && \
-    add-apt-repository ppa:certbot/certbot && \
-    apt-get update
-
-# Установка Certbot
-RUN apt-get install -y certbot python3-certbot-nginx
-
-# Копирование Nginx конфигурации
+# Copy the Nginx config
 COPY nginx.conf /etc/nginx/sites-available/default
 
+# Expose the port for access
 EXPOSE 80/tcp
 
+# Run the Nginx server
 CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
