@@ -5,7 +5,7 @@ RUN apt-get -y update && apt-get -y install nginx
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y install nano
 
 # Установка certbot
-RUN apt install software-properties-common && add-apt-repository universe && add-apt-repository ppa:certbot/certbot && apt update && apt install certbot python3-certbot-nginx 
+RUN apt install software-properties-common -y && apt install add-apt-repository -y universe && apt install add-apt-repository ppa:certbot/certbot -y && apt update && apt install certbot python3-certbot-nginx 
 
 # Копируем Nginx конфиг
 COPY nginx.conf /etc/nginx/sites-available/default
