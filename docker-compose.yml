@@ -14,6 +14,7 @@ services:
     volumes:
       - ./django/service_project/static:/django_project/static
       - ./django/service_project/media:/django_project/media
+      - /etc/letsencrypt:/etc/letsencrypt:ro 
     depends_on:
       - django
 
