@@ -7,15 +7,15 @@ volumes:
 services:
 
   nginx:
-    build: ./nginx # Указываем путь к папке с Dockerfile
+    build: ./nginx
     restart: always
-    expose: 
-      - 80
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./django/service_project/static:/django_project/static
       - ./django/service_project/media:/django_project/media
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - django
   
