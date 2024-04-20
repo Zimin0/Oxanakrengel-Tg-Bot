@@ -28,6 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "95.163.235.225", '127.0.0.1', '79.174.80.95', 'oxanakrengel-tech.ru']
 
+CSRF_TRUSTED_ORIGINS = ['https://oxanakrengel-tech.ru']
+
 STATIC_URL = 'static/'
 STATIC_ROOT = 'static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
