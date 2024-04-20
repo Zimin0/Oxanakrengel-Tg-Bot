@@ -2,6 +2,7 @@ version: '3'
 
 volumes:
   pgdata:
+  nginx_logs:
 
 services:
 
@@ -15,6 +16,7 @@ services:
       - ./django/service_project/static:/django_project/static
       - ./django/service_project/media:/django_project/media
       - /etc/letsencrypt:/etc/letsencrypt:ro 
+      - nginx_logs:/var/log/nginx
     depends_on:
       - django
 
