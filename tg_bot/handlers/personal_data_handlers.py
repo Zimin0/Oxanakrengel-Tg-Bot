@@ -125,7 +125,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
     print(f"Финальная цена заказа: {total_price}")
 
     ### Сохраняем в БД ### 
-    price(f"Имя текущего пользователя: {user_data.get('name'), user_data.get('surname'), user_data.get('email')}")
+    price(f"Данные текущего пользователя: {user_data.get('name')}, {user_data.get('surname')}, {user_data.get('email')}")
     if not DEBUG:
         person_db_id = await get_or_create_personal_data(
             telegram_user_id=f"@{message.from_user.username}",
