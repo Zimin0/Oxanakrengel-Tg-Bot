@@ -1,15 +1,17 @@
 # Pull the minimal Ubuntu image
-FROM ubuntu:jammy
+FROM ubuntu
 
-# Install Nginx and Certbot from Ubuntu repositories
-RUN apt-get update && apt-get install -y nginx certbot python3-certbot-nginx
+# Install Nginx
+RUN apt-get -y update && apt-get -y install nginx
+RUN apt-get -y update && apt-get -y upgrade && apt-get -y install nano
 
 # Copy the Nginx config and SSL params snippet
 COPY nginx.conf /etc/nginx/sites-available/default
 COPY ssl-params.conf /etc/nginx/snippets/ssl-params.conf
 
-# Expose the ports for HTTP and HTTPS access
-EXPOSE 80 443
+# Expose the ports for HTTP and HTTPS
+EXPOSE 80/tcp
+EXPOSE 443/tcp
 
 # Run the Nginx server
 CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
