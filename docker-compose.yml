@@ -43,10 +43,14 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   tg_bot:
+    network_mode: "host"
     build: ./tg_bot
     command: python main.py
     volumes:
       - ./tg_bot:/bot
     depends_on:
       - django
+    dns:
+    - 8.8.8.8
+    - 8.8.4.4
   
