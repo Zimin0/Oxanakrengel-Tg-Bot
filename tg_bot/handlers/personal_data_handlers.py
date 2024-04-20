@@ -71,7 +71,7 @@ async def process_phone_number(message: Message, state: FSMContext):
         "INPUT_YOUR_ADDRESS")
     
     # Получаем адрес из модели настроек пользователя в БД
-    PHYSICAL_SHOP_ADDRESS = get_user_setting("PHYSICAL_SHOP_ADDRESS", "Москва, ул. Примерная, д. 10, 3 этаж")
+    PHYSICAL_SHOP_ADDRESS = await get_user_setting("PHYSICAL_SHOP_ADDRESS", "Москва, ул. Примерная, д. 10, 3 этаж")
     
     try:
         Validators.validate_phone_number(message.text)
@@ -125,6 +125,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
     print(f"Финальная цена заказа: {total_price}")
 
     ### Сохраняем в БД ### 
+    price(f"Имя текущего пользователя: {user_data.get('name'), user_data.get('surname'), user_data.get('email')}")
     if not DEBUG:
         person_db_id = await get_or_create_personal_data(
             telegram_user_id=f"@{message.from_user.username}",
