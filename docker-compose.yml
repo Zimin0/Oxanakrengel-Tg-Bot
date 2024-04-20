@@ -19,6 +19,7 @@ services:
       - django
 
   django:
+    network_mode: "host"
     build: ./django/service_project
     volumes:
       - ./django/service_project:/django_project
