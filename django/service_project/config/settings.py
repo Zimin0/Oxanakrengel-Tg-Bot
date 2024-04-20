@@ -26,7 +26,9 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "95.163.235.225", '127.0.0.1', '79.174.80.95', 'oxanakrengel-tech.ru']
+ALLOWED_HOSTS = ["localhost", "79.174.80.95", "127.0.0.1", "oxanakrengel-tech.ru"]
+
+CSRF_TRUSTED_ORIGINS = ['https://oxanakrengel-tech.ru']
 
 STATIC_URL = 'static/'
 STATIC_ROOT = 'static/'
