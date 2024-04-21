@@ -10,14 +10,22 @@ from api.serializers import PersonalDataSerializer, SupportRequestSerializer, Bo
 class PersonalDataViewSet(viewsets.ModelViewSet):
     queryset = PersonalData.objects.all()
     serializer_class = PersonalDataSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['id', 'telegram_user_id', 'phone_number', 'email']
 
 class BotOrderViewSet(viewsets.ModelViewSet):
     queryset = BotOrder.objects.all()
     serializer_class = BotOrderSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = [ 'id', 'personal_data', 'payment_id']
+
 
 class SupportRequestViewSet(viewsets.ModelViewSet):
     queryset = SupportRequest.objects.all()
     serializer_class = SupportRequestSerializer 
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = [ 'id', 'user']
+
 
 class UserSettingViewSet(viewsets.ModelViewSet):
     queryset = Setting.objects.all()
