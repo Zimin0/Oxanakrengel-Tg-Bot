@@ -72,7 +72,6 @@ async def process_phone_number(message: Message, state: FSMContext):
     
     # Получаем адрес из модели настроек пользователя в БД
     PHYSICAL_SHOP_ADDRESS = await get_user_setting("PHYSICAL_SHOP_ADDRESS", "Москва, ул. Примерная, д. 10, 3 этаж")
-    
     try:
         Validators.validate_phone_number(message.text)
     except ValueError as e:
@@ -83,7 +82,7 @@ async def process_phone_number(message: Message, state: FSMContext):
     user_data = await state.get_data()
     if user_data.get("delivery_method") == 'delivery_pickup':
         # Если выбран самовывоз, выводим адрес и завершаем процесс
-        await message.answer(YOU_CAN_LIFT_YOUR_ORDER_FROM + PHYSICAL_SHOP_ADDRESS)
+        await message.answer(YOU_CAN_LIFT_YOUR_ORDER_FROM + PHYSICAL_SHOP_ADDRESS['value'])
         await message.answer(
         f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
         f"Email: {user_data['email']}\nТелефон: {user_data['phone_number']}\n"
