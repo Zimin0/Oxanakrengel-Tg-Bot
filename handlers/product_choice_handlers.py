@@ -87,12 +87,17 @@ async def process_payment_callback(callback_query: types.CallbackQuery, state: F
         "YOU_HAVE_ALREADY_SELECTED_PAYMENT_METHOD",
         "PAYMENT_METHOD_HAVE_SELECTED",
         "NOW_CHOOSE_DELIVERY_METHOD")
-
+    
     user_data = await state.get_data()
     if "payment_method" in user_data:
         await callback_query.message.answer(YOU_HAVE_ALREADY_SELECTED_PAYMENT_METHOD)
     else:
         payment_method = callback_query.data.split(':')[1]  # Извлекаем метод оплаты из callback_data
+        ### Блокировка метода PayPal ###
+        if payment_method == "paypal":
+            await callback_query.answer()
+            return
+        ################################ 
         readable_payment_method = PAYMENT_METHODS.get(payment_method, 'Не знаю...')
         await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
         await callback_query.message.answer(f"{PAYMENT_METHOD_HAVE_SELECTED} <b>\"{readable_payment_method}\"</b>")
