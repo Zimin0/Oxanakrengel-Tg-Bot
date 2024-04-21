@@ -4,11 +4,13 @@ from yookassa import Configuration, Payment
 import uuid
 from dotenv import load_dotenv
 import os
+import asyncio
+from httpx_requests.user_settings import get_user_setting
 
 load_dotenv()
 
-Configuration.account_id = os.getenv('YOOKASSA_ACCOUNT_ID')
-Configuration.secret_key = os.getenv('YOOKASSA_SECRET_KEY') 
+Configuration.account_id = asyncio.run(get_user_setting("YOOKASSA_ACCOUNT_ID", default='124'))
+Configuration.secret_key = asyncio.run(get_user_setting("YOOKASSA_SECRET_KEY", default='124'))
 
 
 class Custom_Payment():
