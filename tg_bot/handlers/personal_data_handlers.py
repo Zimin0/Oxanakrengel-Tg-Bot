@@ -65,7 +65,18 @@ async def process_email(message: Message, state: FSMContext):
 @personal_data_router.message(PersonalDataForm.wait_for_phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
     """ Обработка номера телефона. """
-    INPUT_YOUR_PHONE, YOU_CAN_LIFT_YOUR_ORDER_FROM, INPUT_YOUR_ADDRESS, PLEASE_INPUT_YOUR_FULL_ADDRESS, THANKS_FOR_YOUR_DATA, YOUR_NAME, YOUR_SURNAME, YOUR_EMAIL, YOUR_PHONE, YOUR_PRICE, YOUR_ADDRESS, YOUR_DATA_WAS_SAVED = load_phrases_from_json_file(
+    INPUT_YOUR_PHONE, \
+    YOU_CAN_LIFT_YOUR_ORDER_FROM, \
+    INPUT_YOUR_ADDRESS, \
+    PLEASE_INPUT_YOUR_FULL_ADDRESS, \
+    THANKS_FOR_YOUR_DATA, \
+    YOUR_NAME, \
+    YOUR_SURNAME, \
+    YOUR_EMAIL, \
+    YOUR_PHONE, \
+    YOUR_PRICE, \
+    YOUR_ADDRESS, \
+    YOUR_DATA_WAS_SAVED = load_phrases_from_json_file(
         "INPUT_YOUR_PHONE",
         "YOU_CAN_LIFT_YOUR_ORDER_FROM",
         "INPUT_YOUR_ADDRESS",
