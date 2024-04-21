@@ -30,5 +30,5 @@ async def get_user_setting(setting_slug:str, default=None) -> dict:
     return default
 
 if __name__ == "__main__":
-    setting =  asyncio.run(get_user_setting("ADDRESS", default='124'))
+    setting =  asyncio.run(get_user_setting("PHYSICAL_SHOP_ADDRESS", default='124'))
     print(setting)
