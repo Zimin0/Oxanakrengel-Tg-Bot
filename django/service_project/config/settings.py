@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'link_generator',
     'rest_framework',
     'phrase_json',
-    'user_setting'
+    'user_setting',
+    'django_filters',
 ]
 
 MIDDLEWARE = [

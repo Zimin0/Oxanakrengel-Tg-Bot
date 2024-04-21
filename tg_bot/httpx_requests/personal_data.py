@@ -13,7 +13,7 @@ from config import DJANGO_URL
 async def get_or_create_personal_data(telegram_user_id: str, name: str, surname: str, address: str, email: str, phone_number: str) -> int:
     """Asynchronously retrieves or creates Telegram user's data. Returns the record id."""
     personal_data_url = f'{DJANGO_URL}api/personaldata/'
-    search_url = f"{personal_data_url}?search={telegram_user_id}"
+    search_url = f"{personal_data_url}?telegram_user_id={telegram_user_id}"
     
     new_personal_data = {
         "telegram_user_id": telegram_user_id,

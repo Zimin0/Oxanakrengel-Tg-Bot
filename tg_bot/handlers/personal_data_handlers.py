@@ -148,9 +148,21 @@ async def process_delivery_address(message: Message, state: FSMContext):
         await state.update_data(product_price=f"{total_price} руб") # сохраняем стоимость товара + доставка
         await state.update_data(order_db_id=order_db_id) # сохраняем django_id заказа в состояние.
     ######################
+    PLEASE_INPUT_YOUR_FULL_ADDRESS, THANKS_FOR_YOUR_DATA, YOUR_NAME, YOUR_SURNAME, YOUR_EMAIL, YOUR_PHONE, YOUR_PRICE, YOUR_ADDRESS, YOUR_DATA_WAS_SAVED = load_phrases_from_json_file(
+        "PLEASE_INPUT_YOUR_FULL_ADDRESS",
+        "THANKS_FOR_YOUR_DATA",
+        "YOUR_NAME",
+        "YOUR_SURNAME",
+        "YOUR_EMAIL",
+        "YOUR_PHONE",
+        "YOUR_PRICE",
+        "YOUR_ADDRESS",
+        "YOUR_DATA_WAS_SAVED",
+        )
+
     await message.answer(
-        f"Спасибо, ваши <b>данные</b>:\n<b>🔹 Имя</b>: {user_data['name']}\n<b>🔹 Фамилия</b>: {user_data['surname']}\n"
-        f"<b>🔹 Email</b>: {user_data['email']}\n<b>🔹 Телефон</b>: {user_data['phone_number']}\n"
-        f"🟢 Цена с учетом доставки: <b>{total_price} руб.</b> \n"
-        f"<b>🔹 Адрес доставки</b>: {user_data['delivery_address']}\nВаши данные <b>успешно сохранены</b>, мы скоро свяжемся с вами!"
+        f"{THANKS_FOR_YOUR_DATA}\n{YOUR_NAME} {user_data['name']}\n{YOUR_SURNAME} {user_data['surname']}\n"
+        f"{YOUR_EMAIL} {user_data['email']}\n{YOUR_PHONE} {user_data['phone_number']}\n"
+        f"{YOUR_PRICE} <b>{total_price} руб.</b> \n"
+        f"{YOUR_ADDRESS} {user_data['delivery_address']}\n{YOUR_DATA_WAS_SAVED}"
     , reply_markup=get_pay_keyboard())

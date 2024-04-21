@@ -6,7 +6,7 @@ class PersonalData(models.Model):
     name = models.CharField(verbose_name="Имя", max_length=80, blank=False)
     surname = models.CharField(verbose_name="Фамилия", max_length=80, blank=False)
     address = models.TextField(verbose_name="Адрес", blank=True, null=True)
-    email = models.EmailField(verbose_name="Почта", blank=False)
+    email = models.CharField(max_length=100, verbose_name="Почта", blank=False)
     phone_number = models.CharField(verbose_name="Номер телефона", max_length=20, blank=False)
 
     def __str__(self):
