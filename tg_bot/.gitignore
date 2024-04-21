@@ -6,4 +6,5 @@
 ToDo.txt
 *.log
 *.pyc
-*cpython*
+*cpython*   
+phrases.json

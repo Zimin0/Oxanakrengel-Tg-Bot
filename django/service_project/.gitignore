@@ -9,3 +9,4 @@ ToDo.txt
 *.pyc
 *cpython*
 db.sqlite3
+/static
