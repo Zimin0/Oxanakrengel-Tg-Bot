@@ -71,7 +71,7 @@ async def process_phone_number(message: Message, state: FSMContext):
         "INPUT_YOUR_ADDRESS")
     
     # Получаем адрес из модели настроек пользователя в БД
-    PHYSICAL_SHOP_ADDRESS = get_user_setting("PHYSICAL_SHOP_ADDRESS", "Москва, ул. Примерная, д. 10, 3 этаж")
+    PHYSICAL_SHOP_ADDRESS = await get_user_setting("PHYSICAL_SHOP_ADDRESS", "Москва, ул. Примерная, д. 10, 3 этаж")
     
     try:
         Validators.validate_phone_number(message.text)
