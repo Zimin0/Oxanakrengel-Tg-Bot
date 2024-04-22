@@ -65,10 +65,31 @@ async def process_email(message: Message, state: FSMContext):
 @personal_data_router.message(PersonalDataForm.wait_for_phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
     """ Обработка номера телефона. """
-    INPUT_YOUR_PHONE, YOU_CAN_LIFT_YOUR_ORDER_FROM, INPUT_YOUR_ADDRESS = load_phrases_from_json_file(
+    INPUT_YOUR_PHONE, \
+    YOU_CAN_LIFT_YOUR_ORDER_FROM, \
+    INPUT_YOUR_ADDRESS, \
+    PLEASE_INPUT_YOUR_FULL_ADDRESS, \
+    THANKS_FOR_YOUR_DATA, \
+    YOUR_NAME, \
+    YOUR_SURNAME, \
+    YOUR_EMAIL, \
+    YOUR_PHONE, \
+    YOUR_PRICE, \
+    YOUR_ADDRESS, \
+    YOUR_DATA_WAS_SAVED = load_phrases_from_json_file(
         "INPUT_YOUR_PHONE",
         "YOU_CAN_LIFT_YOUR_ORDER_FROM",
-        "INPUT_YOUR_ADDRESS")
+        "INPUT_YOUR_ADDRESS",
+        "PLEASE_INPUT_YOUR_FULL_ADDRESS",
+        "THANKS_FOR_YOUR_DATA",
+        "YOUR_NAME",
+        "YOUR_SURNAME",
+        "YOUR_EMAIL",
+        "YOUR_PHONE",
+        "YOUR_PRICE",
+        "YOUR_ADDRESS",
+        "YOUR_DATA_WAS_SAVED",
+        )
     
     # Получаем адрес из модели настроек пользователя в БД
     PHYSICAL_SHOP_ADDRESS = await get_user_setting("PHYSICAL_SHOP_ADDRESS", "Москва, ул. Примерная, д. 10, 3 этаж")
@@ -80,14 +101,17 @@ async def process_phone_number(message: Message, state: FSMContext):
     await state.update_data(phone_number=message.text)
     
     user_data = await state.get_data()
+
+    price, valute = parse_price_and_valute(user_data.get('product_price')) # парсим цену товара
+
     if user_data.get("delivery_method") == 'delivery_pickup':
         # Если выбран самовывоз, выводим адрес и завершаем процесс
-        await message.answer(YOU_CAN_LIFT_YOUR_ORDER_FROM + PHYSICAL_SHOP_ADDRESS['value'])
         await message.answer(
-        f"Спасибо, ваши <b>данные</b>:\nИмя: {user_data['name']}\nФамилия: {user_data['surname']}\n"
-        f"Email: {user_data['email']}\nТелефон: {user_data['phone_number']}\n"
-        f"\nВаши данные успешно сохранены, мы скоро свяжемся с вами!"
-    , reply_markup=get_pay_keyboard())
+            f"{THANKS_FOR_YOUR_DATA}\n{YOUR_NAME} {user_data['name']}\n{YOUR_SURNAME} {user_data['surname']}\n"
+            f"{YOUR_EMAIL} {user_data['email']}\n{YOUR_PHONE} {user_data['phone_number']}\n"
+            f"{YOUR_PRICE} <b>{float(price)} руб.</b> \n"
+            f"{YOUR_ADDRESS} {user_data['delivery_address']}\n{YOUR_DATA_WAS_SAVED}"
+        , reply_markup=get_pay_keyboard())  
     else:
         # Если требуется доставка, переходим к запросу адреса
         await state.set_state(PersonalDataForm.wait_for_delivery_address)
