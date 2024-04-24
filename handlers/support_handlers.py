@@ -43,7 +43,7 @@ async def process_support_confirm_message(callback_query: types.CallbackQuery, s
         "YOUR_CAN_RETURN_TO_THE_LAST_PRODUCT"
         )
     user_data = await state.get_data()
-    ### Сохраняем в БД ### 
+    ### Сохраняем в БД запрос в поддержку ### 
     user_telegram_tag = f"@{callback_query.from_user.username}"
     text = user_data['support_message']
     await create_support_request(
@@ -52,8 +52,7 @@ async def process_support_confirm_message(callback_query: types.CallbackQuery, s
         )
     ######################
     await callback_query.message.answer(YOUR_REQUEST_IS_SAVED)
-    user_data = await state.get_data()
-    keyboard = get_last_product_keyboard(product_name=user_data.get('last_product_slug'))
+    keyboard = get_last_product_keyboard(product_name=user_data.get('product_title'))
     await callback_query.message.answer(YOUR_CAN_RETURN_TO_THE_LAST_PRODUCT, reply_markup=keyboard)
     await callback_query.answer()
 

@@ -21,7 +21,7 @@ async def process_start_command_or_callback(data: str, message: Message = None, 
     """Логика обработки для команды /start и callback от inline-клавиатуры."""
     NO_AVAILABLE_SIZES, PLEASE_WAIT = load_phrases_from_json_file("NO_AVAILABLE_SIZES", "PLEASE_WAIT")
 
-    await message.answer(PLEASE_WAIT)
+    await message.answer(PLEASE_WAIT) # вывод сообщени о ожидании
 
     await state.set_state(OrderClothes.show_clothes) # Устанавливаем состояние показа карточки товара
     
@@ -32,6 +32,7 @@ async def process_start_command_or_callback(data: str, message: Message = None, 
     # сохраняем данные о товаре в стейт # 
     await state.update_data(product_price=product_json['price']) # сохраняем ссылку на товар
     await state.update_data(link_in_shop=product_json['url']) # сохраняем ссылку на товар
+    await state.update_data(product_title=product_json['title']) # сохраняем читаемое название товара
     #####################################
 
     message_text, photoes, size_keyboard = get_product_content(product_json)
