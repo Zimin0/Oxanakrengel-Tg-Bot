@@ -1,6 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
-from config import DEBUG
 from json_text_for_bot import load_phrases_from_json_file
 
 def get_delivery_keyboard() -> InlineKeyboardMarkup:
@@ -74,8 +73,6 @@ def get_sizes_keyboard(product_info: dict) -> InlineKeyboardMarkup:
 def get_pay_keyboard() -> InlineKeyboardMarkup:
     """ Клавиарура "Перейти к оплате." """
     GO_PAY = load_phrases_from_json_file("GO_PAY")
-    if DEBUG:
-        PAY = f"Сафонов, {GO_PAY}"
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=GO_PAY, callback_data="payment_request")],
     ])
