@@ -1,16 +1,19 @@
 import json
+from config import PHRASES_FILE_NAME
 
 def load_phrases_from_json_file(*slugs):
-    """Загружает и возвращает фразы или вложенные словари для ответа ботом из json файла.
+    """
+    Загружает и возвращает фразы или вложенные словари для ответа ботом из json файла.
     Если передан один ключ, возвращает строку.
-    Если передано несколько ключей, возвращает список соответствующих значений."""
-    file_path = 'phrases.json'
+    Если передано несколько ключей, возвращает список соответствующих значений.
+    """
+    file_path = PHRASES_FILE_NAME
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             phrases = json.load(file)
             results = [phrases.get(slug) for slug in slugs if slug in phrases]
             
-            if not results:
+            if len(slugs) != len(results):
                 raise ValueError("Одна или несколько фраз для указанных ключей не найдены.")
             
             # Если аргумент был только один, возвращаем строку, иначе - список
@@ -18,4 +21,4 @@ def load_phrases_from_json_file(*slugs):
     except FileNotFoundError:
         raise FileNotFoundError(f"Файл {file_path} не найден.")
     except json.JSONDecodeError:
-        raise ValueError("Ошибка при разборе JSON файла.")
+        raise ValueError("Ошибка при декодировании JSON файла.")
