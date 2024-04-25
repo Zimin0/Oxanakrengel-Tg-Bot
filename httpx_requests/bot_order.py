@@ -3,6 +3,13 @@ import asyncio
 import sys
 from pathlib import Path
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BOT_AUTH_TOKEN_DRF = os.getenv('BOT_AUTH_TOKEN_DRF')
+
 # Добавляем путь к корневой директории проекта в sys.path
 root_path = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_path))
@@ -22,12 +29,14 @@ async def create_bot_order(personal_data_id: int, product_link: str, size: int, 
         "status": status,
         "is_real_order": is_real_order
     }
+    headers = {"Authorization": f"Token {BOT_AUTH_TOKEN_DRF}"}
+
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(bot_order_url, json=new_bot_order)
+            response = await client.post(bot_order_url, json=new_bot_order, headers=headers)
             if response.status_code in (200, 201):
                 response_json = response.json()
-                print("Создана новая запись BotOrder:", response)
+                print("Создана новая запись BotOrder:", response_json)
                 return str(response_json['id'])
             else:
                 print("Ошибка при создании BotOrder")
@@ -41,8 +50,9 @@ if __name__ == '__main__':
     personal_data = 1
     product_link = 'https://oxanakrengel.com/zhaket-na-molnii'
     size = 48
-    shipping_method = 'delivery_russia'
+    shipping_method = 'DELIVERY_RUSSIA'
     payment_method = 'paypal'
     price = 12000.00
     status = 'waiting_for_payment'
-    asyncio.run(create_bot_order(personal_data, product_link, size, shipping_method, payment_method, price, status))
+    is_real_order = False
+    asyncio.run(create_bot_order(personal_data, product_link, size, shipping_method, payment_method, price, status, is_real_order))

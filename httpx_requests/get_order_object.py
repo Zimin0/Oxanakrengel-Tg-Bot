@@ -2,6 +2,11 @@ import httpx
 import asyncio
 import sys
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+BOT_AUTH_TOKEN_DRF = os.getenv('BOT_AUTH_TOKEN_DRF')
 
 # Добавляем путь к корневой директории проекта в sys.path
 root_path = Path(__file__).resolve().parent.parent
@@ -12,9 +17,10 @@ from config import DJANGO_URL
 async def get_order_by_id(order_id: int) -> dict:
     """Асинхронно получает объект заказа по его id."""
     bot_order_url = f'{DJANGO_URL}api/botorder/{order_id}/'
+    headers = {"Authorization": f"Token {BOT_AUTH_TOKEN_DRF}"}
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(bot_order_url)
+            response = await client.get(bot_order_url, headers=headers)
             if response.status_code == 200:
                 order_data = response.json()
                 print("Заказ найден:", order_data)

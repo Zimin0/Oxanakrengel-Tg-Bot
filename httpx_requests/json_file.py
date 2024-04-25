@@ -2,6 +2,11 @@ import httpx
 import asyncio
 import sys
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+BOT_AUTH_TOKEN_DRF = os.getenv('BOT_AUTH_TOKEN_DRF')
 
 # Необходимо добавить импорт для Path, если он не был добавлен ранее
 from pathlib import Path
@@ -12,9 +17,10 @@ from config import DJANGO_URL
 async def fetch_bot_phrases():
     """Асинхронно запрашивает и сохраняет файл с фразами для бота."""
     phrases_url = f'{DJANGO_URL}api/bot-phrases/'  # URL для получения фраз бота
+    headers = {"Authorization": f"Token {BOT_AUTH_TOKEN_DRF}"}
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(phrases_url)
+            response = await client.get(phrases_url, headers=headers)
             if response.status_code == 200:
                 # ответ от сервера - это строка в формате JSON
                 data = response.json()
