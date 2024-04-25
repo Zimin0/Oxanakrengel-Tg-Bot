@@ -4,8 +4,7 @@ from yookassa import Configuration, Payment
 import uuid
 from dotenv import load_dotenv
 import os
-import asyncio
-from httpx_requests.user_settings import get_user_setting
+from config import BOT_TELEGRAM_NAME
 
 load_dotenv()
 
@@ -13,7 +12,7 @@ Configuration.account_id = os.getenv('YOOKASSA_ACCOUNT_ID')
 Configuration.secret_key = os.getenv('YOOKASSA_SECRET_KEY') 
 
 class Custom_Payment():
-    return_url = 'https://t.me/OxanaKrengelShopBot'
+    return_url = 'https://t.me/{BOT_TELEGRAM_NAME}'
     
     @staticmethod
     def __create_date() -> str:

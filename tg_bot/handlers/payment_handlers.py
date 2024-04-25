@@ -1,6 +1,5 @@
 from aiogram import Router
 from aiogram import types
-from aiogram.types import LabeledPrice
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.markdown import hbold
 
