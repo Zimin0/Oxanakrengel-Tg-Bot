@@ -5,7 +5,7 @@ from utils import Validators, parse_price_and_valute
 from states import PersonalDataForm
 from keyboards import get_pay_keyboard
 from json_text_for_bot import load_phrases_from_json_file
-from config import DEBUG, PAYMENT_TEST_MODE
+from config import PAYMENT_TEST_MODE, DISABLE_VALIDATION, debug_data_for_personal, debug_data_for_order
 
 from aiogram import Router
 from httpx_requests.personal_data import get_or_create_personal_data
@@ -93,6 +93,7 @@ async def process_phone_number(message: Message, state: FSMContext):
     
     # Получаем адрес из модели настроек пользователя в БД
     PHYSICAL_SHOP_ADDRESS = await get_user_setting("PHYSICAL_SHOP_ADDRESS", "Москва, ул. Примерная, д. 10, 3 этаж")
+    PHYSICAL_SHOP_ADDRESS = PHYSICAL_SHOP_ADDRESS['value']
     try:
         Validators.validate_phone_number(message.text)
     except ValueError as e:
@@ -104,13 +105,13 @@ async def process_phone_number(message: Message, state: FSMContext):
 
     price, valute = parse_price_and_valute(user_data.get('product_price')) # парсим цену товара
 
-    if user_data.get("delivery_method") == 'PRICE_DELIVERY_PICKUP':
+    if user_data.get("delivery_method") == 'DELIVERY_PICKUP':
         # Если выбран самовывоз, выводим адрес и завершаем процесс
         await message.answer(
             f"{THANKS_FOR_YOUR_DATA}\n{YOUR_NAME} {user_data['name']}\n{YOUR_SURNAME} {user_data['surname']}\n"
             f"{YOUR_EMAIL} {user_data['email']}\n{YOUR_PHONE} {user_data['phone_number']}\n"
             f"{YOUR_PRICE} <b>{float(price)} руб.</b> \n"
-            f"{YOUR_ADDRESS} {user_data['delivery_address']}\n{YOUR_DATA_WAS_SAVED}"
+            f"{YOU_CAN_LIFT_YOUR_ORDER_FROM}\n\n<b>{PHYSICAL_SHOP_ADDRESS}</b>\n\n{YOUR_DATA_WAS_SAVED}"
         , reply_markup=get_pay_keyboard())  
     else:
         # Если требуется доставка, переходим к запросу адреса
@@ -137,40 +138,50 @@ async def process_delivery_address(message: Message, state: FSMContext):
     except ValueError as e:
         await message.answer(str(e) + "\n" + PLEASE_INPUT_YOUR_FULL_ADDRESS)
         return
-    
-    user_data = await state.get_data()
+
     ### Обновляем адрес доставки ###
     await state.update_data(delivery_address=message.text) 
+
+    user_data = await state.get_data()
     
     ### парсим цену товара ###
     price, valute = parse_price_and_valute(user_data.get('product_price'))
     delivery_type = user_data.get("delivery_method")
+    slug_for_delivery_price = f"PRICE_{delivery_type}" # В БД они хранятся как PRICE_DELIVERY_MOSCOW
 
-    PRICE_FOR_DELIVERY = await get_user_setting(delivery_type, 0.0)
+    PRICE_FOR_DELIVERY = await get_user_setting(slug_for_delivery_price, 0.0)
     PRICE_FOR_DELIVERY = float(PRICE_FOR_DELIVERY['value'])
 
     total_price = float(price + PRICE_FOR_DELIVERY)
     print(f"Финальная цена заказа: {total_price}")
 
     ### Сохраняем в БД объект пользователя и создаем новый заказ ### 
-    person_db_id = await get_or_create_personal_data(
-        telegram_user_id=f"@{message.from_user.username}",
-        name=user_data.get('name'), 
-        surname=user_data.get('surname'), 
-        address=user_data.get('delivery_address'), 
-        email=user_data.get('email'), 
-        phone_number=user_data.get('phone_number')
+    if DISABLE_VALIDATION: # Валидация выключена, поэтому сохраняем подготовленные тестовые данные
+        person_db_id = await get_or_create_personal_data(**debug_data_for_personal)
+        order_db_id = await create_bot_order(
+            personal_data_id=person_db_id, 
+            **debug_data_for_order
         )
-    order_db_id = await create_bot_order(
-        personal_data_id=person_db_id, 
-        product_link=user_data.get('link_in_shop'), 
-        size=user_data.get('selected_size'), 
-        shipping_method=user_data.get('delivery_method'), 
-        payment_method=user_data.get('payment_method'), 
-        price=total_price, 
-        status='waiting_for_payment',
-        is_real_order=(not PAYMENT_TEST_MODE)
+    else: # Иначе боевой режим
+        person_db_id = await get_or_create_personal_data(
+            telegram_user_id=f"@{message.from_user.username}",
+            name=user_data.get('name'), 
+            surname=user_data.get('surname'), 
+            address=user_data.get('delivery_address'), 
+            email=user_data.get('email'), 
+            phone_number=user_data.get('phone_number')
         )
+        order_db_id = await create_bot_order(
+            personal_data_id=person_db_id, 
+            product_link=user_data.get('link_in_shop'), 
+            selected_size=user_data.get('selected_size'),
+            shipping_method=user_data.get('delivery_method'), 
+            payment_method=user_data.get('payment_method'), 
+            price=total_price, 
+            status='waiting_for_payment',
+            is_real_order=(not PAYMENT_TEST_MODE)
+        )
+
     await state.update_data(product_price=f"{total_price} руб") # сохраняем стоимость товара + стоимость доставки
     await state.update_data(order_db_id=order_db_id) # сохраняем django_id заказа в состояние.
     ################################################################

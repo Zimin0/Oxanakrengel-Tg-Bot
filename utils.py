@@ -20,7 +20,7 @@ def is_payment_choice_callback(callback_query: types.CallbackQuery) -> bool:
 
 def is_delivery_callback(callback_query: types.CallbackQuery) -> bool:
     """Проверяет, является ли callback_query выбором типа доставки."""
-    return callback_query.data.startswith("delivery_")
+    return callback_query.data.startswith("DELIVERY_")
 
 def is_support_callback(callback_query: types.CallbackQuery) -> bool:
     """ Проверяет, является ли callback_query нажатием кнопки "техподдержка". """
@@ -78,7 +78,7 @@ def get_product_photoes(product_info: dict) -> list:
 def if_debug(func):
     """Декоратор, отключающий валидацию в режиме отладки."""
     def wrapper(*args, **kwargs):
-        if config.DEBUG:
+        if config.DISABLE_VALIDATION:
             return
         else:
             return func(*args, **kwargs)
