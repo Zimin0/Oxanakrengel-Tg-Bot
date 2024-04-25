@@ -2,6 +2,11 @@ import httpx
 import asyncio
 import sys
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+BOT_AUTH_TOKEN_DRF = os.getenv('BOT_AUTH_TOKEN_DRF')
 
 # Добавляем путь к корневой директории проекта в sys.path
 root_path = Path(__file__).resolve().parent.parent
@@ -17,9 +22,10 @@ async def create_support_request(user_id: int, text: str, status: str = "in_prog
         "text": text,
         "status": status
     }
+    headers = {"Authorization": f"Token {BOT_AUTH_TOKEN_DRF}"}
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(support_request_url, json=new_support_request_data)
+            response = await client.post(support_request_url, json=new_support_request_data, headers=headers)
             if response.status_code in (200, 201):
                 created_request = response.json()
                 print("Создан новый SupportRequest:", created_request)

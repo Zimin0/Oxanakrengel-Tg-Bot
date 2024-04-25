@@ -2,6 +2,11 @@ import httpx
 import asyncio
 import sys
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+BOT_AUTH_TOKEN_DRF = os.getenv('BOT_AUTH_TOKEN_DRF')
 
 # Добавляем путь к корневой директории проекта в sys.path
 root_path = Path(__file__).resolve().parent.parent
@@ -14,6 +19,7 @@ async def get_or_create_personal_data(telegram_user_id: str, name: str, surname:
     """Asynchronously retrieves or creates Telegram user's data. Returns the record id."""
     personal_data_url = f'{DJANGO_URL}api/personaldata/'
     search_url = f"{personal_data_url}?telegram_user_id={telegram_user_id}"
+    headers = {"Authorization": f"Token {BOT_AUTH_TOKEN_DRF}"}
     
     new_personal_data = {
         "telegram_user_id": telegram_user_id,
@@ -29,7 +35,7 @@ async def get_or_create_personal_data(telegram_user_id: str, name: str, surname:
     async with httpx.AsyncClient() as client:
         try:
             # Попытка найти существующие пользовательские данные
-            search_response = await client.get(search_url)
+            search_response = await client.get(search_url, headers=headers)
             if search_response.status_code == 200:
                 search_data = search_response.json()
                 # Проверьте, существует ли пользователь уже

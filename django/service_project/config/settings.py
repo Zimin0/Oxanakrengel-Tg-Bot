@@ -37,7 +37,11 @@ STATIC_ROOT = 'static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-# Application definition
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -54,6 +58,7 @@ INSTALLED_APPS = [
     'phrase_json',
     'user_setting',
     'django_filters',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
