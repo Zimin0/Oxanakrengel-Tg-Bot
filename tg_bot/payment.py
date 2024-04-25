@@ -12,8 +12,10 @@ Configuration.account_id = os.getenv('YOOKASSA_ACCOUNT_ID')
 Configuration.secret_key = os.getenv('YOOKASSA_SECRET_KEY') 
 
 class Custom_Payment():
-    return_url = 'https://t.me/{BOT_TELEGRAM_NAME}'
-    
+    @property
+    def return_url(self):
+        return f'https://t.me/{BOT_TELEGRAM_NAME}'
+
     @staticmethod
     def __create_date() -> str:
         """ Генерирует дату в формате 2018-07-18T10:51:18.139Z """
@@ -44,7 +46,7 @@ class Custom_Payment():
             "created_at": Custom_Payment.__create_date(),
             "confirmation": {
                 "type": "redirect",
-                "return_url": Custom_Payment.return_url
+                "return_url": self.return_url
             },
             "capture": True,
             "metadata": {
