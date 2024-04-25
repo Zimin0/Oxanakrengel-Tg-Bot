@@ -18,9 +18,9 @@ class PersonalData(models.Model):
 
 class BotOrder(models.Model):
     SHIPPING_METHODS = (
-        ("delivery_moscow", "Доставка курьером по Москве"),
-        ("delivery_russia", "Доставка курьером по России"),
-        ("delivery_pickup", "Самовывоз")
+        ("DELIVERY_MOSCOW", "Доставка курьером по Москве"),
+        ("DELIVERY_RUSSIA", "Доставка курьером по России"),
+        ("DELIVERY_PICKUP", "Самовывоз")
     )
     PAYMENT_METHODS = (
         ("card_ru", "Карта РФ "),

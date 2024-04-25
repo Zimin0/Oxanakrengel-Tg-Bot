@@ -174,7 +174,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
         order_db_id = await create_bot_order(
             personal_data_id=person_db_id, 
             product_link=user_data.get('link_in_shop'), 
-            selected_size=user_data.get('selected_size'),
+            size=user_data.get('selected_size'),
             shipping_method=user_data.get('delivery_method'), 
             payment_method=user_data.get('payment_method'), 
             price=total_price, 
