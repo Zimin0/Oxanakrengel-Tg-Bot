@@ -44,7 +44,6 @@ async def get_or_create_personal_data(telegram_user_id: str, name: str, surname:
                     update_url = f"{personal_data_url}{user_id}/"
                     # Обновите существующие данные пользователя
                     update_response = await client.patch(update_url, json=new_personal_data, headers=headers)
-                    print(f"{update_response=} {update_response.status_code=} {update_response.json()}")
                     if update_response.status_code in (200, 202):  # 202 Принято к обновлению
                         updated_data = update_response.json()
                         print("Updated existing PersonalData record:", updated_data)
