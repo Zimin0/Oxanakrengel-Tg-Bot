@@ -43,7 +43,7 @@ async def get_or_create_personal_data(telegram_user_id: str, name: str, surname:
                     user_id = search_data[0]['id']  # Предполагая, что API возвращает список
                     update_url = f"{personal_data_url}{user_id}/"
                     # Обновите существующие данные пользователя
-                    update_response = await client.patch(update_url, json=new_personal_data)
+                    update_response = await client.patch(update_url, json=new_personal_data, headers=headers)
                     print(f"{update_response=} {update_response.status_code=} {update_response.json()}")
                     if update_response.status_code in (200, 202):  # 202 Принято к обновлению
                         updated_data = update_response.json()
@@ -56,7 +56,7 @@ async def get_or_create_personal_data(telegram_user_id: str, name: str, surname:
                         return None
                 else:
                     # Если пользователь не существует, создайте новую запись
-                    create_response = await client.post(personal_data_url, json=new_personal_data)
+                    create_response = await client.post(personal_data_url, json=new_personal_data, headers=headers)
                     if create_response.status_code in (200, 201):
                         data = create_response.json()
                         print("Created new PersonalData record:", data)
