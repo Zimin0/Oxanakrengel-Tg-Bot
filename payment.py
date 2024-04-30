@@ -4,13 +4,19 @@ from yookassa import Configuration, Payment
 import uuid
 from dotenv import load_dotenv
 import os
-from config import BOT_TELEGRAM_NAME
+from config import BOT_TELEGRAM_NAME, PAYMENT_TEST_MODE
 
 load_dotenv()
 
-Configuration.account_id = os.getenv('YOOKASSA_ACCOUNT_ID')
-Configuration.secret_key = os.getenv('YOOKASSA_SECRET_KEY') 
+if PAYMENT_TEST_MODE:
+    YOOKASSA_ACCOUNT_ID_sample = 'YOOKASSA_ACCOUNT_ID'
+    YOOKASSA_SECRET_KEY_sample = 'YOOKASSA_SECRET_KEY' 
+else:
+    YOOKASSA_ACCOUNT_ID_sample = 'YOOKASSA_PRODUCTION_ACCOUNT_ID'
+    YOOKASSA_SECRET_KEY_sample = 'YOOKASSA_PRODUCTION_SECRET_KEY' 
 
+Configuration.account_id = os.getenv(YOOKASSA_ACCOUNT_ID_sample)
+Configuration.secret_key = os.getenv(YOOKASSA_SECRET_KEY_sample) 
 
 class Custom_Payment():
     @property
