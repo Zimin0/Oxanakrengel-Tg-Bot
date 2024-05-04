@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from utils import is_size_callback, is_payment_choice_callback, is_delivery_callback, get_product_content, get_args_from_message
+from utils import is_size_callback, is_payment_choice_callback, is_delivery_callback, get_product_content, get_args_from_message, is_back_callback
 from keyboards import get_delivery_keyboard, get_payment_keyboard
 from create_links import get_product_link_in_shop
 from bs_parser import WebPageParser
@@ -87,22 +87,38 @@ async def process_payment_callback(callback_query: types.CallbackQuery, state: F
         "PAYMENT_METHODS",
         "YOU_HAVE_ALREADY_SELECTED_PAYMENT_METHOD",
         "PAYMENT_METHOD_HAVE_SELECTED",
-        "NOW_CHOOSE_DELIVERY_METHOD")
+        "NOW_CHOOSE_DELIVERY_METHOD",)
+    
+    NO_AVAILABLE_SIZES, NOW_CHOOSE_PAYMENT_METHOD = load_phrases_from_json_file(
+        "NO_AVAILABLE_SIZES",
+        "NOW_CHOOSE_PAYMENT_METHOD")
     
     user_data = await state.get_data()
-    if "payment_method" in user_data:
-        await callback_query.message.answer(YOU_HAVE_ALREADY_SELECTED_PAYMENT_METHOD)
-    else:
-        payment_method = callback_query.data.split(':')[1]  # Извлекаем метод оплаты из callback_data
-        ### Блокировка метода PayPal ###
-        if payment_method == "paypal":
-            await callback_query.answer()
-            return
-        ################################ 
-        readable_payment_method = PAYMENT_METHODS.get(payment_method, 'Не знаю...')
-        await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
-        await callback_query.message.answer(f"{PAYMENT_METHOD_HAVE_SELECTED} <b>\"{readable_payment_method}\"</b>")
-        await state.set_state(OrderClothes.choose_delivery_method)
+
+    if "back_to_previous" in callback_query.data.split(':'):
+        selected_size = user_data.get("selected_size")
+        await callback_query.message.answer(
+            text=f"<b>{selected_size}-й</b> {NOW_CHOOSE_PAYMENT_METHOD}:",
+            reply_markup=get_payment_keyboard()
+        )
+        await state.set_state(OrderClothes.choose_payment_method)  # Переход к выбору способа оплаты
+        await callback_query.answer()
+        return
+
+    # if "payment_method" in user_data:
+    #     await callback_query.message.answer(YOU_HAVE_ALREADY_SELECTED_PAYMENT_METHOD)
+    # else:
+    print(callback_query.data.split(':'))
+    payment_method = callback_query.data.split(':')[1]  # Извлекаем метод оплаты из callback_data
+    ### Блокировка метода PayPal ###
+    if payment_method == "paypal":
+        await callback_query.answer()
+        return
+    ################################ 
+    readable_payment_method = PAYMENT_METHODS.get(payment_method, 'Не знаю...')
+    await state.update_data(payment_method=payment_method)  # Сохраняем выбранный способ оплаты
+    await callback_query.message.answer(f"{PAYMENT_METHOD_HAVE_SELECTED} <b>\"{readable_payment_method}\"</b>")
+    await state.set_state(OrderClothes.choose_delivery_method)
 
     await callback_query.answer()
     await callback_query.message.answer(NOW_CHOOSE_DELIVERY_METHOD, reply_markup=get_delivery_keyboard())
@@ -117,14 +133,77 @@ async def process_delivery_callback(callback_query: types.CallbackQuery, state: 
         "INPUT_YOUR_NAME"
         )
     user_data = await state.get_data()
-    if 'delivery_method' in user_data:
-        await callback_query.message.answer(YOU_HAVE_ALREADY_SELECTED_DELIVERY_METHOD + user_data["delivery_method"].replace('_', ' ').capitalize())
-    else:
-        delivery_method = callback_query.data  # Извлекаем тип доставки из callback_data
-        delivery_readable =  SHIPPING_METHODS[delivery_method] # читаемая версия способа доставки
-        await state.update_data(delivery_method=delivery_method)
-        await state.set_state(PersonalDataForm.wait_for_name)
-        await callback_query.message.answer(f"{DELIVERY_METHOD_HAVE_SELECTED} {delivery_readable}")
+    # if 'delivery_method' in user_data:
+    #     await callback_query.message.answer(YOU_HAVE_ALREADY_SELECTED_DELIVERY_METHOD + user_data["delivery_method"].replace('_', ' ').capitalize())
+    # else:
+    delivery_method = callback_query.data  # Извлекаем тип доставки из callback_data
+    delivery_readable =  SHIPPING_METHODS[delivery_method] # читаемая версия способа доставки
+    await state.update_data(delivery_method=delivery_method)
+    await state.set_state(PersonalDataForm.wait_for_name)
+    await callback_query.message.answer(f"{DELIVERY_METHOD_HAVE_SELECTED} {delivery_readable}")
+
     await state.set_state(PersonalDataForm.wait_for_name)
     await callback_query.message.answer(INPUT_YOUR_NAME)
+    await callback_query.answer()
+
+@product_choice_router.callback_query(lambda c: c.data and c.data.startswith('get_product'))
+async def process_start_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    """Обработчик callback-кнопки, имитирующий команду /start с аргументом."""
+    user_data = await state.get_data()
+    product_name = user_data.get('last_product_slug')
+    await process_start_command_or_callback(product_name, message=callback_query.message, state=state)
+    await callback_query.answer()
+    await state.clear()
+
+from aiogram import types
+
+from handlers.personal_data_handlers import (
+    process_name, process_surname, process_email, process_phone_number, process_delivery_address
+)
+
+# Список состояний
+state_order = [
+    OrderClothes.show_clothes.state,
+    OrderClothes.choose_size.state,
+    OrderClothes.choose_payment_method.state,
+    OrderClothes.choose_delivery_method.state,
+    PersonalDataForm.wait_for_name.state,
+    PersonalDataForm.wait_for_surname.state,
+    PersonalDataForm.wait_for_email.state,
+    PersonalDataForm.wait_for_phone_number.state,
+    PersonalDataForm.wait_for_delivery_address.state
+]
+
+# Словарь обработчиков
+state_handlers = {
+    OrderClothes.show_clothes: process_start_command_or_callback,
+    OrderClothes.choose_size: process_size_callback,
+    OrderClothes.choose_payment_method: process_payment_callback,
+    OrderClothes.choose_delivery_method: process_delivery_callback,
+    PersonalDataForm.wait_for_name: process_name,
+    PersonalDataForm.wait_for_surname: process_surname,
+    PersonalDataForm.wait_for_email: process_email,
+    PersonalDataForm.wait_for_phone_number: process_phone_number,
+    PersonalDataForm.wait_for_delivery_address: process_delivery_address
+}
+
+@product_choice_router.callback_query(is_back_callback)
+async def back_button_handler(callback_query: types.CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
+    # Используйте строковое представление текущего состояния для сравнения
+    state_index = state_order.index(current_state) if current_state else -1
+    print(f"Текущее состояние: {current_state}")
+    if state_index > 0:
+        # Определяем предыдущее состояние
+        previous_state = state_order[state_index - 1]
+        await state.set_state(previous_state)
+        print(f"Переключаю в состояние: {previous_state}")
+        # Вызываем обработчик для предыдущего состояния
+        handler = state_handlers[previous_state]
+        print(f"{handler=}")
+        await handler(callback_query, state)
+    else:
+        # Сообщение пользователю
+        await callback_query.message.answer("Вы находитесь в начальном этапе и не можете вернуться назад.")
+
     await callback_query.answer()

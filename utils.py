@@ -38,6 +38,10 @@ def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
     """ Проверяет, является ли callback_query нажатием кнопки "Перейти к оплате". """
     return callback_query.data.startswith('payment_')
 
+def is_back_callback(callback_query: types.CallbackQuery) -> bool:
+    """ Проверяет, является ли callback_query нажатием кнопки "Назад". """
+    return callback_query.data.startswith('back_to_previous')
+
 def get_args_from_message(message: Message) -> str:
     """ Достает аргументы, переданные в ссылке в параметре ?start=... """
     parts = message.text.split(maxsplit=1)

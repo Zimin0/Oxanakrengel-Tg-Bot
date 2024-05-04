@@ -8,7 +8,9 @@ def get_delivery_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=readable, callback_data=slug)] for slug, readable in SHIPPING_METHODS.items()
     ])
-    return merge_keyboards(keyboard, get_support_keyboard())
+    keyboard = __merge_keyboards(keyboard, get_support_keyboard())
+    keyboard = get_back_button(keyboard)
+    return keyboard
 
 def get_payment_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для выбора способа оплаты."""
@@ -16,7 +18,9 @@ def get_payment_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=readable, callback_data='payment:'+slug) for slug, readable in PAYMENT_METHODS.items()]
     ])
-    return merge_keyboards(keyboard, get_support_keyboard())
+    keyboard = __merge_keyboards(keyboard, get_support_keyboard())
+    keyboard = get_back_button(keyboard)
+    return keyboard
 
 def get_confirmation_support_keyboard() -> InlineKeyboardMarkup:
     """Возвращает инлайн-клавиатуру для подтверждение выбора. """
@@ -45,7 +49,7 @@ def get_last_product_keyboard(product_name: str) -> InlineKeyboardMarkup:
     ])
     return keyboard
 
-def merge_keyboards(*keyboards: InlineKeyboardMarkup) -> InlineKeyboardMarkup:
+def __merge_keyboards(*keyboards: InlineKeyboardMarkup) -> InlineKeyboardMarkup:
     """Объединяет несколько инлайн-клавиатур в одну."""
     all_buttons = []
     for keyboard in keyboards:
@@ -85,4 +89,11 @@ def get_final_pay_keyboard(payment_url) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=PAY, url=payment_url)],
         [InlineKeyboardButton(text=CHECK_PAYMENT, callback_data="check_payment_request")], 
     ])
+    return keyboard
+
+def get_back_button(keyboard: InlineKeyboardMarkup) -> InlineKeyboardMarkup:
+    """Возвращает клавиатуру с кнопкой 'Назад'."""
+    BACK = load_phrases_from_json_file("BACK")
+    back_button = InlineKeyboardButton(text=BACK, callback_data="back_to_previous")
+    keyboard.inline_keyboard.append([back_button])
     return keyboard
