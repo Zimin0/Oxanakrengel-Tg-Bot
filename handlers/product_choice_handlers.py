@@ -17,12 +17,26 @@ product_choice_router = Router()
 
 parser = WebPageParser(debug=True, folder='products_json', can_upload_from_file=True)
 
+async def show_state_data(state: FSMContext, handler):
+    """ Декоратор для вывода содержимого State и текущего состояния """
+    current_state = await state.get_state()
+    state_name = current_state.split(':')[-1] if current_state else "Нет активного состояния"
+    user_data = await state.get_data()
+    if user_data:
+        # Формируем строку с информацией для пользователя с нумерацией
+        data_info = "\n".join(f"{idx + 1}. {key}: {value}" for idx, (key, value) in enumerate(user_data.items()))
+        response_text = f"Данные из state:\n{data_info}"
+    else:
+        response_text = "Нет сохранённых данных."
+    print('---------------------------------------------------------')
+    print(f"---{handler.__name__}---\nСостояние: {state_name}\n{response_text}")
+    print('---------------------------------------------------------')
+
 async def process_start_command_or_callback(data: str, message: Message = None, state: FSMContext = None):
     """Логика обработки для команды /start и callback от inline-клавиатуры."""
     NO_AVAILABLE_SIZES, PLEASE_WAIT = load_phrases_from_json_file("NO_AVAILABLE_SIZES", "PLEASE_WAIT")
-
     await message.answer(PLEASE_WAIT) # вывод сообщени о ожидании
-
+    await show_state_data(state, process_start_command_or_callback) # Вывод данных о состоянии
     await state.set_state(OrderClothes.show_clothes) # Устанавливаем состояние показа карточки товара
     
     link_in_shop = get_product_link_in_shop(product_name=data)
@@ -54,6 +68,7 @@ async def command_start_handler(message: types.Message, state: FSMContext):
 @product_choice_router.callback_query(lambda c: c.data and c.data.startswith('get_product'))
 async def process_start_callback(callback_query: types.CallbackQuery, state: FSMContext):
     """Обработчик callback-кнопки, имитирующий команду /start с аргументом."""
+    await show_state_data(state, process_start_callback) # Вывод данных о состоянии
     user_data = await state.get_data()
     product_name = user_data.get('last_product_slug')
     await process_start_command_or_callback(product_name, message=callback_query.message, state=state)
@@ -63,6 +78,7 @@ async def process_start_callback(callback_query: types.CallbackQuery, state: FSM
 @product_choice_router.callback_query(is_size_callback)
 async def process_size_callback(callback_query: types.CallbackQuery, state: FSMContext):
     """ Выбор размера одежды. """
+    await show_state_data(state, process_size_callback) # Вывод данных о состоянии
     user_data = await state.get_data()
     NO_AVAILABLE_SIZES, NOW_CHOOSE_PAYMENT_METHOD = load_phrases_from_json_file(
         "NO_AVAILABLE_SIZES",
@@ -92,6 +108,8 @@ async def process_payment_callback(callback_query: types.CallbackQuery, state: F
     NO_AVAILABLE_SIZES, NOW_CHOOSE_PAYMENT_METHOD = load_phrases_from_json_file(
         "NO_AVAILABLE_SIZES",
         "NOW_CHOOSE_PAYMENT_METHOD")
+    
+    await show_state_data(state, process_payment_callback) # Вывод данных о состоянии
     
     user_data = await state.get_data()
 
