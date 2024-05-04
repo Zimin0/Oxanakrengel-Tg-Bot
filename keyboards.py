@@ -9,7 +9,7 @@ def get_delivery_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=readable, callback_data=slug)] for slug, readable in SHIPPING_METHODS.items()
     ])
     keyboard = __merge_keyboards(keyboard, get_support_keyboard())
-    keyboard = get_back_button(keyboard)
+    keyboard = __merge_keyboards(keyboard, create_back_button_keyboard())
     return keyboard
 
 def get_payment_keyboard() -> InlineKeyboardMarkup:
@@ -19,7 +19,7 @@ def get_payment_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=readable, callback_data='payment:'+slug) for slug, readable in PAYMENT_METHODS.items()]
     ])
     keyboard = __merge_keyboards(keyboard, get_support_keyboard())
-    keyboard = get_back_button(keyboard)
+    keyboard = __merge_keyboards(keyboard, create_back_button_keyboard())
     return keyboard
 
 def get_confirmation_support_keyboard() -> InlineKeyboardMarkup:
@@ -56,17 +56,18 @@ def __merge_keyboards(*keyboards: InlineKeyboardMarkup) -> InlineKeyboardMarkup:
         all_buttons.extend(keyboard.inline_keyboard)
     return InlineKeyboardMarkup(inline_keyboard=all_buttons)
 
-def get_sizes_keyboard(product_info: dict) -> InlineKeyboardMarkup:
+def get_sizes_keyboard(product_sizes: dict) -> InlineKeyboardMarkup:
     """Возвращает клавиатуру с доступными размерами товара."""
     SIZE = load_phrases_from_json_file("SIZE")
+    WIDTH_OF_KEYBOARD = 3 
     buttons = []
     row = []
-    if not product_info['sizes']:
+    if not product_sizes:
         return None
-    for size in product_info['sizes']:
+    for size in product_sizes:
         new_button = InlineKeyboardButton(text=size+SIZE, callback_data=f"size_{size}")
         row.append(new_button)  # Добавляем кнопку в текущий ряд
-        if len(row) == 2:  # Проверяем, достиг ли ряд желаемого количества кнопок
+        if len(row) == WIDTH_OF_KEYBOARD:  # Проверяем, достиг ли ряд желаемого количества кнопок
             buttons.append(row)  # Добавляем готовый ряд в общий список
             row = []  # Очищаем ряд для следующих кнопок
     if row:  # Добавляем оставшиеся кнопки, если они есть
@@ -91,9 +92,14 @@ def get_final_pay_keyboard(payment_url) -> InlineKeyboardMarkup:
     ])
     return keyboard
 
-def get_back_button(keyboard: InlineKeyboardMarkup) -> InlineKeyboardMarkup:
-    """Возвращает клавиатуру с кнопкой 'Назад'."""
-    BACK = load_phrases_from_json_file("BACK")
-    back_button = InlineKeyboardButton(text=BACK, callback_data="back_to_previous")
-    keyboard.inline_keyboard.append([back_button])
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+def create_back_button_keyboard() -> InlineKeyboardMarkup:
+    """Создает новую клавиатуру с кнопкой 'Назад'."""
+    BACK = load_phrases_from_json_file("BACK")  # Загружаем название кнопки из файла
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=BACK, callback_data="back_to_previous")]
+    ])
     return keyboard
+
+

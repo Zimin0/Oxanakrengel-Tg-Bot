@@ -66,7 +66,7 @@ def get_product_content(product_info: dict) -> list[list, list, InlineKeyboardMa
         f"\n<a href='{product_info['url']}'>{ABOUT_PRODUCT}</a>\n\n"
         f"{product_info['description']}"
     ]
-    size_keyboard = get_sizes_keyboard(product_info)
+    size_keyboard = get_sizes_keyboard(product_info['sizes'])
     photoes = get_product_photoes(product_info)
     message_text = "\n".join(message_text)
 
