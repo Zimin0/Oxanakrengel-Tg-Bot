@@ -101,5 +101,3 @@ def create_back_button_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=BACK, callback_data="back_to_previous")]
     ])
     return keyboard
-
-

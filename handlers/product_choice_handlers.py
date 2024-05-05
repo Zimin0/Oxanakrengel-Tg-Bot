@@ -8,7 +8,7 @@ from utils import is_size_callback, is_payment_choice_callback, is_delivery_call
 from keyboards import get_delivery_keyboard, get_payment_keyboard, get_sizes_keyboard
 from create_links import get_product_link_in_shop
 from json_text_for_bot import load_phrases_from_json_file
-from handlers.personal_data_handlers import display_name_choice,  display_delivery_address_choice, display_surname_choice, display_email_choice, display_phone_choice
+from handlers.personal_data_handlers import display_name_choice, display_data_confirmation, display_delivery_address_choice, display_surname_choice, display_email_choice, display_phone_choice
 from bs_parser import WebPageParser
 from states import OrderClothes, PersonalDataForm
 
@@ -161,34 +161,6 @@ async def process_delivery_callback(callback_query: CallbackQuery, state: FSMCon
 
     await display_name_choice(callback_query, state) 
 
-
-# TODO перенести куда-то в другое место 
-
-# Список состояний
-state_order = [
-    OrderClothes.show_clothes.state,
-    OrderClothes.choose_size.state,
-    OrderClothes.choose_payment_method.state,
-    OrderClothes.choose_delivery_method.state,
-    PersonalDataForm.wait_for_name.state,
-    PersonalDataForm.wait_for_surname.state,
-    PersonalDataForm.wait_for_email.state,
-    PersonalDataForm.wait_for_phone_number.state,
-    PersonalDataForm.wait_for_delivery_address.state
-]
-
-# Словарь обработчиков
-state_handlers = {
-    OrderClothes.choose_size: display_size_choice,
-    OrderClothes.choose_payment_method: display_payment_choice,
-    OrderClothes.choose_delivery_method: display_delivery_choice,
-    PersonalDataForm.wait_for_name: display_name_choice,
-    PersonalDataForm.wait_for_surname: display_surname_choice,
-    PersonalDataForm.wait_for_email: display_email_choice,
-    PersonalDataForm.wait_for_phone_number: display_phone_choice,
-    PersonalDataForm.wait_for_delivery_address: display_delivery_address_choice
-}
-
 @product_choice_router.callback_query(is_back_callback)
 async def back_button_handler(callback_query: CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
@@ -207,3 +179,33 @@ async def back_button_handler(callback_query: CallbackQuery, state: FSMContext):
         await callback_query.message.answer("Вы находитесь в начальном этапе и не можете вернуться назад.")
 
     await callback_query.answer()
+
+# TODO перенести куда-то в другое место 
+
+# Список состояний
+state_order = [
+    OrderClothes.show_clothes.state,
+    OrderClothes.choose_size.state,
+    OrderClothes.choose_payment_method.state,
+    OrderClothes.choose_delivery_method.state,
+    PersonalDataForm.wait_for_name.state,
+    PersonalDataForm.wait_for_surname.state,
+    PersonalDataForm.wait_for_email.state,
+    PersonalDataForm.wait_for_phone_number.state,
+    PersonalDataForm.wait_for_delivery_address.state,
+    PersonalDataForm.wait_for_confirm_of_inputed_data
+]
+
+# Словарь обработчиков
+state_handlers = {
+    OrderClothes.choose_size: display_size_choice,
+    OrderClothes.choose_payment_method: display_payment_choice,
+    OrderClothes.choose_delivery_method: display_delivery_choice,
+    PersonalDataForm.wait_for_name: display_name_choice,
+    PersonalDataForm.wait_for_surname: display_surname_choice,
+    PersonalDataForm.wait_for_email: display_email_choice,
+    PersonalDataForm.wait_for_phone_number: display_phone_choice,
+    PersonalDataForm.wait_for_delivery_address: display_delivery_address_choice,
+    PersonalDataForm.wait_for_confirm_of_inputed_data: display_data_confirmation
+}
+

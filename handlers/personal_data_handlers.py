@@ -141,7 +141,7 @@ async def process_phone_number(message: Message, state: FSMContext):
     #### Смотрим, нужно ли запрашивать адрес у клиента ####
     user_data = await state.get_data()
     if user_data.get("delivery_method") == 'DELIVERY_PICKUP': # самовывоз - адрес клиента не требуется
-        await display_result_data(message, state) # выводим собранную информацию
+        await display_data_confirmation(message, state) # просим подтвердить правильность данных
     else: # требуется адрес клиента для доставки
         await display_delivery_address_choice(message, state)
 
@@ -172,15 +172,53 @@ async def process_delivery_address(message: Message, state: FSMContext):
         await message.answer(str(e) + "\n")
         await display_delivery_address_choice(message, state)
     await state.update_data(delivery_address=message.text) 
-    await display_result_data(message, state) # выводим собранную информацию
+    await display_data_confirmation(message, state) # просим подтвердить правильность данных
+
+#########################################################################################################
+##################################### ПОДТВЕРЖДЕНИЕ ПРАВИЛЬНОСТИ ########################################
+#########################################################################################################
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
+from json_text_for_bot import load_phrases_from_json_file
+
+def create_confirm_keyboard() -> InlineKeyboardMarkup:
+    """Создает клавиатуру с кнопкой 'Назад' и 'Все верно' для подтверждения правильности данных ."""
+    BACK, CONFIRM_OK = load_phrases_from_json_file("BACK", "CONFIRM_OK")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=CONFIRM_OK, callback_data="data_is_correct")],
+        [InlineKeyboardButton(text=BACK, callback_data="back_to_previous")]
+    ])
+    return keyboard
+
+def is_data_confirmation_callback(callback_query: CallbackQuery) -> bool:
+    """ Проверяет, является ли callback_query нажатием кнопки "Все верно". """
+    return callback_query.data.startswith('data_is_correct')
+
+async def display_data_confirmation(event, state: FSMContext):
+    """ Выводит блок подтверждения правильности данных """
+    CONFIRM_INPUTED_DATA = load_phrases_from_json_file("CONFIRM_INPUTED_DATA")
+    await state.set_state(PersonalDataForm.wait_for_confirm_of_inputed_data)
+    await show_state_data(state, display_data_confirmation)  # Вывод данных о состоянии
+    reply_markup = create_confirm_keyboard()
+
+    if isinstance(event, Message):
+        await event.answer(CONFIRM_INPUTED_DATA, reply_markup=reply_markup)
+    elif isinstance(event, CallbackQuery):
+        await event.message.answer(CONFIRM_INPUTED_DATA, reply_markup=reply_markup)
+        await event.answer()
+
+@personal_data_router.callback_query(is_data_confirmation_callback)
+async def process_data_confirmation(callback_query: CallbackQuery, state: FSMContext):
+    """ Обработка нажатия на 'Все верно'. """  
+    await show_state_data(state, process_data_confirmation) # Вывод данных о состоянии
+    await display_result_data(callback_query, state) # выводим собранную информацию
 
 #########################################################################################################
 ################################################ ОПЛАТА #################################################
 #########################################################################################################
 
-async def display_result_data(message: Message, state: FSMContext):
+async def display_result_data(message, state: FSMContext):
     """ Выводит собранную у пользователя информацию. """
-    await show_state_data(state, display_result_data) # Вывод данных о состоянии
     YOU_CAN_LIFT_YOUR_ORDER_FROM, \
     THANKS_FOR_YOUR_DATA, \
     YOUR_NAME, \
@@ -200,6 +238,13 @@ async def display_result_data(message: Message, state: FSMContext):
         "YOUR_ADDRESS",
         "YOUR_DATA_WAS_SAVED",
         )
+    
+    if isinstance(message, CallbackQuery): # Почти всегда будет приходить callback
+        await message.answer()
+        message = message.message
+        
+
+    await show_state_data(state, display_result_data) # Вывод данных о состоянии
     user_data = await state.get_data()
     price, valute = parse_price_and_valute(user_data.get('product_price')) # парсим цену товара
 
