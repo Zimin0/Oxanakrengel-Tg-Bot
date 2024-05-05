@@ -1,7 +1,7 @@
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
-from utils import Validators, parse_price_and_valute, is_payment_callback
+from utils import Validators, parse_price_and_valute, show_state_data
 from states import PersonalDataForm
 from keyboards import get_pay_keyboard, create_back_button_keyboard
 from json_text_for_bot import load_phrases_from_json_file
@@ -22,18 +22,20 @@ async def display_name_choice(event, state: FSMContext):
     """ Выводит блок ввода имени. """
     INPUT_YOUR_NAME = load_phrases_from_json_file("INPUT_YOUR_NAME")
     await state.set_state(PersonalDataForm.wait_for_name)
+    await show_state_data(state, display_name_choice) # Вывод данных о состоянии
     
-    # Проверяем, является ли 'event' сообщением или обратным вызовом
+    # Проверяем, является ли 'event' сообщением или callback
     if isinstance(event, Message):
         await event.answer(INPUT_YOUR_NAME, reply_markup=create_back_button_keyboard())
     elif isinstance(event, CallbackQuery):
-        # Обратите внимание, что мы используем 'message.answer' для ответа на оригинальное сообщение.
+        # Используем 'message.answer' для ответа на оригинальное сообщение.
         await event.message.answer(INPUT_YOUR_NAME, reply_markup=create_back_button_keyboard())
-        await event.answer()  # Это необходимо для подтверждения обработки callback_query в Telegram
+        await event.answer()
 
 @personal_data_router.message(PersonalDataForm.wait_for_name)
 async def process_name(message: Message, state: FSMContext):
     """ Обработка имени """
+    await show_state_data(state, process_name) # Вывод данных о состоянии
     try:
         Validators.validate_name(message.text)
     except ValueError as e:
@@ -47,15 +49,24 @@ async def process_name(message: Message, state: FSMContext):
 ############################################### ФАМИЛИЯ #################################################
 #########################################################################################################
 
-async def display_surname_choice(message: Message, state: FSMContext):
+async def display_surname_choice(event, state: FSMContext):
     """ Выводит блок ввода фамилии. """
     INPUT_YOUR_SURNAME = load_phrases_from_json_file("INPUT_YOUR_SURNAME")
     await state.set_state(PersonalDataForm.wait_for_surname)
-    await message.answer(INPUT_YOUR_SURNAME)
+    await show_state_data(state, display_surname_choice)  # Вывод данных о состоянии
+    reply_markup = create_back_button_keyboard()
+
+    if isinstance(event, Message):
+        await event.answer(INPUT_YOUR_SURNAME, reply_markup=reply_markup)
+    elif isinstance(event, CallbackQuery):
+        await event.message.answer(INPUT_YOUR_SURNAME, reply_markup=reply_markup)
+        await event.answer()
+
 
 @personal_data_router.message(PersonalDataForm.wait_for_surname)
 async def process_surname(message: Message, state: FSMContext):
-    """ Обработка фамилии. """    
+    """ Обработка фамилии. """ 
+    await show_state_data(state, process_surname) # Вывод данных о состоянии
     try:
         Validators.validate_name(message.text)
     except ValueError as e:
@@ -70,15 +81,24 @@ async def process_surname(message: Message, state: FSMContext):
 ################################################ ПОЧТА ##################################################
 #########################################################################################################
 
-async def display_email_choice(message: Message, state: FSMContext):
+async def display_email_choice(event, state: FSMContext):
     """ Выводит блок ввода почты. """
     INPUT_YOUR_EMAIL = load_phrases_from_json_file("INPUT_YOUR_EMAIL")
     await state.set_state(PersonalDataForm.wait_for_email)
-    await message.answer(INPUT_YOUR_EMAIL)
+    await show_state_data(state, display_email_choice)  # Вывод данных о состоянии
+    reply_markup = create_back_button_keyboard()
+
+    if isinstance(event, Message):
+        await event.answer(INPUT_YOUR_EMAIL, reply_markup=reply_markup)
+    elif isinstance(event, CallbackQuery):
+        await event.message.answer(INPUT_YOUR_EMAIL, reply_markup=reply_markup)
+        await event.answer()
+
 
 @personal_data_router.message(PersonalDataForm.wait_for_email)
 async def process_email(message: Message, state: FSMContext):
     """ Обработка ввода почты. """
+    await show_state_data(state, process_email) # Вывод данных о состоянии
     try:
         Validators.validate_email(message.text)
     except ValueError as e:
@@ -93,16 +113,23 @@ async def process_email(message: Message, state: FSMContext):
 ############################################### ТЕЛЕФОН #################################################
 #########################################################################################################
 
-async def display_phone_choice(message: Message, state: FSMContext):
+async def display_phone_choice(event, state: FSMContext):
     """ Выводит блок ввода телефона. """
     INPUT_YOUR_PHONE = load_phrases_from_json_file("INPUT_YOUR_PHONE")
-    user_data = state.get_data()
     await state.set_state(PersonalDataForm.wait_for_phone_number)
-    await message.answer(INPUT_YOUR_PHONE)
+    await show_state_data(state, display_phone_choice)  # Вывод данных о состоянии
+    reply_markup = create_back_button_keyboard()
+
+    if isinstance(event, Message):
+        await event.answer(INPUT_YOUR_PHONE, reply_markup=reply_markup)
+    elif isinstance(event, CallbackQuery):
+        await event.message.answer(INPUT_YOUR_PHONE, reply_markup=reply_markup)
+        await event.answer()
 
 @personal_data_router.message(PersonalDataForm.wait_for_phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
     """ Обработка ввода номера телефона. """
+    await show_state_data(state, process_phone_number) # Вывод данных о состоянии
     try:
         Validators.validate_phone_number(message.text)
     except ValueError as e:
@@ -116,26 +143,34 @@ async def process_phone_number(message: Message, state: FSMContext):
     if user_data.get("delivery_method") == 'DELIVERY_PICKUP': # самовывоз - адрес клиента не требуется
         await display_result_data(message, state) # выводим собранную информацию
     else: # требуется адрес клиента для доставки
-        await display_devilery_address_choice(message, state)
+        await display_delivery_address_choice(message, state)
 
 #########################################################################################################
 ################################################ АДРЕС ##################################################
 #########################################################################################################
 
-async def display_devilery_address_choice(message: Message, state: FSMContext):
+async def display_delivery_address_choice(event, state: FSMContext):
     """ Выводит блок ввода адреса. """
     INPUT_YOUR_ADDRESS = load_phrases_from_json_file("INPUT_YOUR_ADDRESS")
     await state.set_state(PersonalDataForm.wait_for_delivery_address)
-    await message.answer(INPUT_YOUR_ADDRESS)
+    await show_state_data(state, display_delivery_address_choice)  # Вывод данных о состоянии
+    reply_markup = create_back_button_keyboard()
+
+    if isinstance(event, Message):
+        await event.answer(INPUT_YOUR_ADDRESS, reply_markup=reply_markup)
+    elif isinstance(event, CallbackQuery):
+        await event.message.answer(INPUT_YOUR_ADDRESS, reply_markup=reply_markup)
+        await event.answer()
 
 @personal_data_router.message(PersonalDataForm.wait_for_delivery_address)
 async def process_delivery_address(message: Message, state: FSMContext):
-    """ Обработка ввода адреса. """    
+    """ Обработка ввода адреса. """  
+    await show_state_data(state, process_delivery_address) # Вывод данных о состоянии
     try:
         Validators.validate_address(message.text)
     except ValueError as e:
         await message.answer(str(e) + "\n")
-        await display_devilery_address_choice(message, state)
+        await display_delivery_address_choice(message, state)
     await state.update_data(delivery_address=message.text) 
     await display_result_data(message, state) # выводим собранную информацию
 
@@ -145,6 +180,7 @@ async def process_delivery_address(message: Message, state: FSMContext):
 
 async def display_result_data(message: Message, state: FSMContext):
     """ Выводит собранную у пользователя информацию. """
+    await show_state_data(state, display_result_data) # Вывод данных о состоянии
     YOU_CAN_LIFT_YOUR_ORDER_FROM, \
     THANKS_FOR_YOUR_DATA, \
     YOUR_NAME, \
@@ -180,13 +216,12 @@ async def display_result_data(message: Message, state: FSMContext):
         __slug_for_delivery_price = f"PRICE_{delivery_type}" # В БД они хранятся как PRICE_DELIVERY_MOSCOW
 
         PRICE_FOR_DELIVERY = await get_user_setting(__slug_for_delivery_price, 0.0)
-        print(PRICE_FOR_DELIVERY)
         PRICE_FOR_DELIVERY = float(PRICE_FOR_DELIVERY['value'])
 
         total_price = float(price + PRICE_FOR_DELIVERY)
         delivery_or_pickup_string = f"{YOUR_ADDRESS} {user_data['delivery_address']}"
 
-    state.update_data(total_price=total_price) # сохраняем окончательную сумму заказа
+    await state.update_data(total_price=total_price) # сохраняем окончательную сумму заказа
     await __save_data_to_db(message, state) # сохраняем данные о заказе в БД #
     await message.answer(
         f"{THANKS_FOR_YOUR_DATA}\n{YOUR_NAME} {user_data['name']}\n{YOUR_SURNAME} {user_data['surname']}\n"
@@ -200,6 +235,7 @@ async def __save_data_to_db(message:Message, state: FSMContext):
     """ Сохраняtn в БД объект пользователя и создает новый заказ. """
     user_data = await state.get_data()
     total_price = user_data.get('total_price')
+    print(f"Финальная цена заказа: {total_price}")
 
     if DISABLE_VALIDATION: # Валидация выключена, поэтому сохраняем подготовленные тестовые данные
         person_db_id = await get_or_create_personal_data(**debug_data_for_personal)

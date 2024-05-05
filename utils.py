@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram import types
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 import config
@@ -142,3 +143,19 @@ class Validators:
         if len(message.split()) < 3 or len(message) < 15:
             raise ValueError("Запрос в поддержку должен содержать минимум 3 слова и 15 символов.")
         
+
+        
+async def show_state_data(state: FSMContext, handler):
+    """ Декоратор для вывода содержимого State и текущего состояния """
+    current_state = await state.get_state()
+    state_name = current_state.split(':')[-1] if current_state else "Нет активного состояния"
+    user_data = await state.get_data()
+    if user_data:
+        # Формируем строку с информацией для пользователя с нумерацией
+        data_info = "\n".join(f"{idx + 1}. {key}: {value}" for idx, (key, value) in enumerate(user_data.items()))
+        response_text = f"Данные из state:\n{data_info}"
+    else:
+        response_text = "Нет сохранённых данных."
+    print('---------------------------------------------------------')
+    print(f"---{handler.__name__}---\nСостояние: {state_name}\n{response_text}")
+    print('---------------------------------------------------------')

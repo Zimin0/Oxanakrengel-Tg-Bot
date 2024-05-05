@@ -4,11 +4,11 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
-from utils import is_size_callback, is_payment_choice_callback, is_delivery_callback, get_product_content, get_args_from_message, is_back_callback
+from utils import is_size_callback, is_payment_choice_callback, is_delivery_callback, get_product_content, get_args_from_message, is_back_callback, show_state_data
 from keyboards import get_delivery_keyboard, get_payment_keyboard, get_sizes_keyboard
 from create_links import get_product_link_in_shop
 from json_text_for_bot import load_phrases_from_json_file
-from handlers.personal_data_handlers import display_name_choice,  display_devilery_address_choice, display_surname_choice, display_email_choice, display_phone_choice
+from handlers.personal_data_handlers import display_name_choice,  display_delivery_address_choice, display_surname_choice, display_email_choice, display_phone_choice
 from bs_parser import WebPageParser
 from states import OrderClothes, PersonalDataForm
 
@@ -16,27 +16,9 @@ product_choice_router = Router()
 
 parser = WebPageParser(debug=True, folder='products_json', can_upload_from_file=True)
 
-# TODO перенести в utils
-async def show_state_data(state: FSMContext, handler):
-    """ Декоратор для вывода содержимого State и текущего состояния """
-    current_state = await state.get_state()
-    state_name = current_state.split(':')[-1] if current_state else "Нет активного состояния"
-    user_data = await state.get_data()
-    if user_data:
-        # Формируем строку с информацией для пользователя с нумерацией
-        data_info = "\n".join(f"{idx + 1}. {key}: {value}" for idx, (key, value) in enumerate(user_data.items()))
-        response_text = f"Данные из state:\n{data_info}"
-    else:
-        response_text = "Нет сохранённых данных."
-    print('---------------------------------------------------------')
-    print(f"---{handler.__name__}---\nСостояние: {state_name}\n{response_text}")
-    print('---------------------------------------------------------')
-
-
 #########################################################################################################
 ####################################### ПОКАЗ ТОВАРА ПОЛЬЗОВАТЕЛЮ #######################################
 #########################################################################################################
-
 
 @product_choice_router.callback_query(lambda c: c.data and c.data.startswith('get_product'))
 async def process_start_callback(callback_query: CallbackQuery, state: FSMContext):
@@ -181,9 +163,6 @@ async def process_delivery_callback(callback_query: CallbackQuery, state: FSMCon
 
 
 # TODO перенести куда-то в другое место 
-from handlers.personal_data_handlers import (
-    process_name, process_surname, process_email, process_phone_number, process_delivery_address
-)
 
 # Список состояний
 state_order = [
@@ -207,7 +186,7 @@ state_handlers = {
     PersonalDataForm.wait_for_surname: display_surname_choice,
     PersonalDataForm.wait_for_email: display_email_choice,
     PersonalDataForm.wait_for_phone_number: display_phone_choice,
-    PersonalDataForm.wait_for_delivery_address: display_devilery_address_choice
+    PersonalDataForm.wait_for_delivery_address: display_delivery_address_choice
 }
 
 @product_choice_router.callback_query(is_back_callback)
