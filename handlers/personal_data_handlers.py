@@ -185,8 +185,8 @@ def create_confirm_keyboard() -> InlineKeyboardMarkup:
     """Создает клавиатуру с кнопкой 'Назад' и 'Все верно' для подтверждения правильности данных ."""
     BACK, CONFIRM_OK = load_phrases_from_json_file("BACK", "CONFIRM_OK")
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=CONFIRM_OK, callback_data="data_is_correct")],
-        [InlineKeyboardButton(text=BACK, callback_data="back_to_previous")]
+        [InlineKeyboardButton(text=CONFIRM_OK, callback_data="data_is_correct"),
+         InlineKeyboardButton(text=BACK, callback_data="back_to_previous")]
     ])
     return keyboard
 
