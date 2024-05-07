@@ -3,7 +3,7 @@ import os
 
 load_dotenv()
 
-PAYMENT_TEST_MODE = False
+PAYMENT_TEST_MODE = True
 DISABLE_VALIDATION = False
 
 MAX_TELEGRAM_ARG_LENGTH = 64 # максимальная длина агрумента, передаваемого в команду start=
