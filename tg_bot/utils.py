@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram import types
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 import config
@@ -38,6 +39,10 @@ def is_payment_callback(callback_query: types.CallbackQuery) -> bool:
     """ Проверяет, является ли callback_query нажатием кнопки "Перейти к оплате". """
     return callback_query.data.startswith('payment_')
 
+def is_back_callback(callback_query: types.CallbackQuery) -> bool:
+    """ Проверяет, является ли callback_query нажатием кнопки "Назад". """
+    return callback_query.data.startswith('back_to_previous')
+
 def get_args_from_message(message: Message) -> str:
     """ Достает аргументы, переданные в ссылке в параметре ?start=... """
     parts = message.text.split(maxsplit=1)
@@ -62,7 +67,7 @@ def get_product_content(product_info: dict) -> list[list, list, InlineKeyboardMa
         f"\n<a href='{product_info['url']}'>{ABOUT_PRODUCT}</a>\n\n"
         f"{product_info['description']}"
     ]
-    size_keyboard = get_sizes_keyboard(product_info)
+    size_keyboard = get_sizes_keyboard(product_info['sizes'])
     photoes = get_product_photoes(product_info)
     message_text = "\n".join(message_text)
 
@@ -138,3 +143,19 @@ class Validators:
         if len(message.split()) < 3 or len(message) < 15:
             raise ValueError("Запрос в поддержку должен содержать минимум 3 слова и 15 символов.")
         
+
+        
+async def show_state_data(state: FSMContext, handler):
+    """ Декоратор для вывода содержимого State и текущего состояния """
+    current_state = await state.get_state()
+    state_name = current_state.split(':')[-1] if current_state else "Нет активного состояния"
+    user_data = await state.get_data()
+    if user_data:
+        # Формируем строку с информацией для пользователя с нумерацией
+        data_info = "\n".join(f"{idx + 1}. {key}: {value}" for idx, (key, value) in enumerate(user_data.items()))
+        response_text = f"Данные из state:\n{data_info}"
+    else:
+        response_text = "Нет сохранённых данных."
+    print('---------------------------------------------------------')
+    print(f"---{handler.__name__}---\nСостояние: {state_name}\n{response_text}")
+    print('---------------------------------------------------------')
