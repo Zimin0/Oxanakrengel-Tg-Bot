@@ -1,6 +1,9 @@
 from django.db import models
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.http import HttpResponseNotFound, HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
+import os
 
 class BotPhrases(models.Model):
     phrases = models.FileField(verbose_name="Файл с фразами в формате .json", upload_to='phrases/')
@@ -10,7 +13,7 @@ class BotPhrases(models.Model):
         # Фиксированное имя для файла
         filename = 'phrases.json'
         # Путь к новому файлу
-        new_path = f'phrases/{filename}'
+        new_path = os.path.join('phrases', filename)
 
         # Удалить предыдущий файл, если он существует
         if default_storage.exists(new_path):
@@ -41,3 +44,15 @@ class BotPhrases(models.Model):
 
     def __str__(self):
         return f"Фразы бота | {self.updated_at.strftime('%Y-%m-%d %H:%M:%S')}"
+
+def get_phrases_orm_object():
+    """ Достает файл с фразами бота из БД. """
+    try:
+        bot_phrase = BotPhrases.objects.first()
+        if bot_phrase:
+            return bot_phrase
+        return HttpResponseNotFound("Файл с фразами не найден.")
+    except ObjectDoesNotExist:
+        return HttpResponseNotFound("Запись не найдена.")
+    except Exception as e:
+        return HttpResponse(f'Error: {str(e)}', status=400)
