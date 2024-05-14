@@ -1,8 +1,7 @@
-from django.http import JsonResponse, HttpResponseNotFound
+from django.http import JsonResponse, HttpResponseNotFound, HttpResponse
 from .models import BotPhrases
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
-import os
+from phrase_json.models import get_phrases_orm_object
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -21,3 +20,16 @@ def get_bot_phrases(request):
         return HttpResponseNotFound("Запись не найдена.")
     except Exception as e:
         return Response({'error': str(e)}, status=400)
+
+def download_file_view(request, obj_id):
+    phrases_object = get_phrases_orm_object()
+    if isinstance(phrases_object, HttpResponse):
+        return phrases_object
+
+    file_path = phrases_object.phrases.path
+
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/force-download')
+        response['Content-Disposition'] = f'attachment; filename="{phrases_object.phrases.name}"'
+        return response
+    
