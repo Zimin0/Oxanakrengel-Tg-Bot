@@ -3,6 +3,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.http import HttpResponseNotFound, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
+import os
 
 class BotPhrases(models.Model):
     phrases = models.FileField(verbose_name="Файл с фразами в формате .json", upload_to='phrases/')
@@ -12,7 +13,7 @@ class BotPhrases(models.Model):
         # Фиксированное имя для файла
         filename = 'phrases.json'
         # Путь к новому файлу
-        new_path = f'phrases/{filename}'
+        new_path = os.path.join('phrases', filename)
 
         # Удалить предыдущий файл, если он существует
         if default_storage.exists(new_path):
