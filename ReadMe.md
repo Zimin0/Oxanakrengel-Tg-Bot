@@ -5,7 +5,7 @@
 
 ### Технологии и библиотеки
 * Django
-* Django Rest Framework
+* Django Rest Framework + Token AUTH
 * Aiogram: основа ТГ бота.
 * httpx + asyncio: запросы к API от бота.
 * Платежная система: Yookassa
